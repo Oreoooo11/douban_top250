@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>豆瓣Top250电影分析</title>
+    <!-- 添加Papa Parse库用于解析CSV文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         /* 全局样式 */
         body {
@@ -92,6 +94,13 @@
         audio {
             display: none;
         }
+        /* 加载中样式 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -107,14 +116,8 @@
         <h2>豆瓣Top250电影概览</h2>
         <p>这里展示豆瓣Top250电影的整体情况，包括电影数量、评分范围等基本信息。</p>
         <!-- 可以在这里插入基本统计量的txt文件内容 -->
-        <div class="text-content">
-            <!-- 读取并显示19_analysis_report.txt的部分内容，这里假设使用JavaScript读取，实际使用时需要根据服务器环境调整 -->
-            <script>
-                // 这里只是示例，实际需要更完善的文件读取逻辑
-                // 可以使用AJAX等技术从服务器获取文件内容
-                let reportContent = "豆瓣电影Top250分析报告\n生成时间: [具体时间]\n基本统计:\n- 电影总数: 250\n- 平均评分: 8.6\n- 平均评价人数: 500,000\n- 时间跨度: 1921至2023\n热门国家:\n美国 120\n中国 50\n日本 30\n韩国 20\n英国 15\n热门类型:\n剧情 180\n喜剧 80\n动作 60\n爱情 50\n犯罪 40\n热门导演:\n克里斯托弗·诺兰 5部\n王家卫 4部\n宫崎骏 4部\n昆汀·塔伦蒂诺 3部\n李安 3部";
-                document.write(reportContent);
-            </script>
+        <div class="text-content" id="overview-content">
+            <div class="loading" id="overview-loading">加载中...</div>
         </div>
     </section>
     <!-- 数据分析部分 -->
@@ -126,26 +129,17 @@
         <h3>各国电影数量Top10</h3>
         <img src="9_top_countries.png" alt="各国电影数量Top10">
         <!-- 可以继续插入其他分析图表，如10_rating_vs_reviews.png等 -->
-        <!-- 插入csv文件数据，这里以3_genre_counts.csv为例，实际使用时需要根据服务器环境调整 -->
+        <!-- 插入csv文件数据，这里以3_genre_counts.csv为例 -->
         <h3>类型频率统计</h3>
-        <table>
+        <div class="loading" id="genre-loading">加载中...</div>
+        <table id="genre-counts-table">
             <thead>
                 <tr>
                     <th>类型</th>
                     <th>出现次数</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- 这里只是示例，实际需要从3_genre_counts.csv读取数据 -->
-                <tr>
-                    <td>剧情</td>
-                    <td>180</td>
-                </tr>
-                <tr>
-                    <td>喜剧</td>
-                    <td>80</td>
-                </tr>
-            </tbody>
+            <tbody></tbody>
         </table>
     </section>
     <!-- 电影词云相册部分 -->
@@ -178,14 +172,8 @@
     <!-- 分析报告部分 -->
     <section id="report" class="section">
         <h2>分析报告</h2>
-        <div class="text-content">
-            <!-- 读取并显示19_analysis_report.txt的完整内容，这里假设使用JavaScript读取，实际使用时需要根据服务器环境调整 -->
-            <script>
-                // 这里只是示例，实际需要更完善的文件读取逻辑
-                // 可以使用AJAX等技术从服务器获取文件内容
-                let reportContent = "豆瓣电影Top250分析报告\n生成时间: [具体时间]\n基本统计:\n- 电影总数: 250\n- 平均评分: 8.6\n- 平均评价人数: 500,000\n- 时间跨度: 1921至2023\n热门国家:\n美国 120\n中国 50\n日本 30\n韩国 20\n英国 15\n热门类型:\n剧情 180\n喜剧 80\n动作 60\n爱情 50\n犯罪 40\n热门导演:\n克里斯托弗·诺兰 5部\n王家卫 4部\n宫崎骏 4部\n昆汀·塔伦蒂诺 3部\n李安 3部\n分析结果已保存到output/目录下，包含:\n- 清洗后的数据 (2_cleaned_data.csv)\n- 各类统计结果 (3_*.csv)\n- 可视化图表 (*.png)";
-                document.write(reportContent);
-            </script>
+        <div class="text-content" id="report-content">
+            <div class="loading" id="report-loading">加载中...</div>
         </div>
     </section>
     <!-- 背景音乐 -->
@@ -194,6 +182,7 @@
         您的浏览器不支持音频播放。
     </audio>
     <script>
+        // 切换相册显示状态
         function toggleGallery() {
             let gallery = document.getElementById('image-gallery');
             if (gallery.style.display === 'none') {
@@ -202,6 +191,103 @@
                 gallery.style.display = 'none';
             }
         }
+
+        // 读取TXT文件内容
+        function loadTextFile(filePath, targetElementId, loadingElementId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', filePath, true);
+            
+            // 显示加载状态
+            document.getElementById(loadingElementId).style.display = 'block';
+            
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    // 隐藏加载状态
+                    document.getElementById(loadingElementId).style.display = 'none';
+                    
+                    if (xhr.status === 200) {
+                        document.getElementById(targetElementId).textContent = xhr.responseText;
+                    } else {
+                        document.getElementById(targetElementId).textContent = `无法加载文件: ${filePath} (状态码: ${xhr.status})`;
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                // 隐藏加载状态
+                document.getElementById(loadingElementId).style.display = 'none';
+                document.getElementById(targetElementId).textContent = `加载文件时发生错误: ${filePath}`;
+            };
+            
+            xhr.send();
+        }
+
+        // 加载并解析CSV文件
+        function loadCsvFile(filePath, targetTableId, loadingElementId) {
+            // 显示加载状态
+            document.getElementById(loadingElementId).style.display = 'block';
+            
+            Papa.parse(filePath, {
+                download: true,
+                header: true,
+                complete: function (results) {
+                    // 隐藏加载状态
+                    document.getElementById(loadingElementId).style.display = 'none';
+                    
+                    const tableBody = document.getElementById(targetTableId).querySelector('tbody');
+                    
+                    // 清空表格现有内容
+                    tableBody.innerHTML = '';
+                    
+                    if (results.data && results.data.length > 0) {
+                        results.data.forEach(row => {
+                            const newRow = tableBody.insertRow();
+                            // 假设CSV文件有两列：类型和出现次数
+                            newRow.insertCell().textContent = row['类型'] || '';
+                            newRow.insertCell().textContent = row['出现次数'] || '';
+                        });
+                    } else {
+                        const newRow = tableBody.insertRow();
+                        const cell = newRow.insertCell();
+                        cell.colSpan = 2;
+                        cell.textContent = '没有数据';
+                    }
+                },
+                error: function(error) {
+                    // 隐藏加载状态
+                    document.getElementById(loadingElementId).style.display = 'none';
+                    
+                    const tableBody = document.getElementById(targetTableId).querySelector('tbody');
+                    const newRow = tableBody.insertRow();
+                    const cell = newRow.insertCell();
+                    cell.colSpan = 2;
+                    cell.textContent = `加载CSV文件时发生错误: ${error.message}`;
+                }
+            });
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function () {
+            // 加载概览文本
+            loadTextFile('19_analysis_report.txt', 'overview-content', 'overview-loading');
+            
+            // 加载分析报告文本
+            loadTextFile('19_analysis_report.txt', 'report-content', 'report-loading');
+            
+            // 加载类型频率统计CSV数据
+            loadCsvFile('3_genre_counts.csv', 'genre-counts-table', 'genre-loading');
+            
+            // 添加平滑滚动效果
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
     </script>
 </body>
 </html>
