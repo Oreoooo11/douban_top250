@@ -334,71 +334,101 @@
         }
 
         // 加载并解析CSV文件
-        function loadCsvFile(filePath, targetTableId, loadingElementId) {
-            // 显示加载状态
-            document.getElementById(loadingElementId).style.display = 'block';
+       function loadCsv(filePath, tableId, loadingId, columns) {
+            document.getElementById(loadingId).style.display = 'block';
             
             Papa.parse(filePath, {
                 download: true,
                 header: true,
-                complete: function (results) {
-                    // 隐藏加载状态
-                    document.getElementById(loadingElementId).style.display = 'none';
+                complete: (results) => {
+                    document.getElementById(loadingId).style.display = 'none';
+                    const tbody = document.getElementById(tableId).querySelector('tbody');
+                    tbody.innerHTML = ''; // 清空原有数据
                     
-                    const tableBody = document.getElementById(targetTableId).querySelector('tbody');
-                    
-                    // 清空表格现有内容
-                    tableBody.innerHTML = '';
-                    
-                    if (results.data && results.data.length > 0) {
-                        results.data.forEach(row => {
-                            const newRow = tableBody.insertRow();
-                            // 假设CSV文件有两列：类型和出现次数
-                            newRow.insertCell().textContent = row['类型'] || '';
-                            newRow.insertCell().textContent = row['出现次数'] || '';
-                        });
-                    } else {
-                        const newRow = tableBody.insertRow();
-                        const cell = newRow.insertCell();
-                        cell.colSpan = 2;
-                        cell.textContent = '没有数据';
+                    if (results.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="' + columns.length + '">无数据</td></tr>';
+                        return;
                     }
+
+                    results.data.forEach(row => {
+                        const tr = tbody.insertRow();
+                        columns.forEach(col => tr.insertCell().textContent = row[col] || '');
+                    });
                 },
-                error: function(error) {
-                    // 隐藏加载状态
-                    document.getElementById(loadingElementId).style.display = 'none';
-                    
-                    const tableBody = document.getElementById(targetTableId).querySelector('tbody');
-                    const newRow = tableBody.insertRow();
-                    const cell = newRow.insertCell();
-                    cell.colSpan = 2;
-                    cell.textContent = `加载CSV文件时发生错误: ${error.message}`;
+                error: (error) => {
+                    document.getElementById(loadingId).style.display = 'none';
+                    const tbody = document.getElementById(tableId).querySelector('tbody');
+                    tbody.innerHTML = '<tr><td colspan="3">加载错误：' + error.message + '</td></tr>';
                 }
             });
         }
 
-        // 页面加载完成后执行
-        document.addEventListener('DOMContentLoaded', function () {
-            // 加载概览文本
-            loadTextFile('19_analysis_report.txt', 'overview-content', 'overview-loading');
-            
-            // 加载分析报告文本
-            loadTextFile('19_analysis_report.txt', 'report-content', 'report-loading');
-            
-            // 加载类型频率统计CSV数据
-            loadCsvFile('3_genre_counts.csv', 'genre-counts-table', 'genre-loading');
-            
-            // 添加平滑滚动效果
+        // 页面加载后执行
+        document.addEventListener('DOMContentLoaded', () => {
+            // 加载概览和报告文本（假设从TXT加载，这里暂时注释）
+            // loadTextFile('19_analysis_report.txt', 'overview-content', 'overview-loading');
+            // loadTextFile('19_analysis_report.txt', 'report-content', 'report-loading');
+
+            // 配置所有需要加载的CSV表格
+            const csvConfigs = [
+                {
+                    filePath: '3_genre_counts.csv',       // 类型频率统计
+                    tableId: 'genre-counts-table',
+                    loadingId: 'genre-loading',
+                    columns: ['类型', '出现次数']
+                },
+                {
+                    filePath: '4_country_counts.csv',       // 国家统计
+                    tableId: 'country-counts-table',
+                    loadingId: 'country-loading',
+                    columns: ['国家', '电影数量']
+                },
+                {
+                    filePath: '16_genre_co_occurrence.csv', // 类型共现统计
+                    tableId: 'co-occurrence-table',
+                    loadingId: 'co-occurrence-loading',
+                    columns: ['类型1', '类型2', '共现次数']
+                },
+                {
+                    filePath: '17_decade_stats.csv',        // 年代统计
+                    tableId: 'decade-table',
+                    loadingId: 'decade-loading',
+                    columns: ['年代', '电影数量', '平均评分', '平均评价人数']
+                }
+            ];
+
+            // 批量加载所有CSV表格
+            csvConfigs.forEach(config => {
+                loadCsv(config.filePath, config.tableId, config.loadingId, config.columns);
+            });
+
+            // 平滑滚动效果
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
-                    
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
                 });
             });
         });
+
+        // TXT加载函数（保留以备需要）
+        function loadTextFile(filePath, targetElementId, loadingElementId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', filePath, true);
+            document.getElementById(loadingElementId).style.display = 'block';
+            
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    document.getElementById(loadingElementId).style.display = 'none';
+                    if (xhr.status === 200) {
+                        document.getElementById(targetElementId).textContent = xhr.responseText;
+                    } else {
+                        document.getElementById(targetElementId).textContent = `加载失败：${xhr.status}`;
+                    }
+                }
+            };
+            xhr.send();
+        }
     </script>
 </body>
 </html>
