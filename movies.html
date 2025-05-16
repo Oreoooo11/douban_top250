@@ -7,6 +7,83 @@
     <!-- 添加Papa Parse库用于解析CSV文件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
+        /* 新增豆瓣年度榜单风格样式 */
+        :root {
+            --main-color: #f0f0f0;
+            --dark-color: #333;
+            --accent-color: #2196F3;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            color: var(--dark-color);
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header-slogan {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .section-title {
+            font-size: 2.2em;
+            color: var(--dark-color);
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            animation: fadeInLeft 0.5s ease-in-out;
+        }
+
+        .overview-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .quote-section {
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* 原有样式兼容调整 */
+        .image-row {
+            justify-content: flex-start;
+            gap: 15px;
+        }
+
+        .analysis-image {
+            max-width: 32%;
+        }
+
+        table {
+            max-width: 100%;
+            margin: 20px 0;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+            }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .image-row { flex-direction: column; }
+            .analysis-image { max-width: 100%; }
+        }
         /* 新增概览部分居中样式 */
         #overview .text-content {
             text-align: center;
@@ -139,55 +216,41 @@
     </style>
 </head>
 <body>
+    <!-- 新增标语模块 -->
+    <div class="header-slogan">
+        <h1 style="font-size: 1.8em; color: #666; margin-bottom: 10px;">光影里的时间胶囊</h1>
+        <p style="font-size: 1.2em; color: #999;">记录豆瓣电影Top250的永恒魅力</p>
+    </div>
+
     <!-- 导航栏 -->
-    <nav>
-        <a href="#overview">概览</a>
-        <a href="#data-analysis">数据分析</a>
-        <a href="#image-gallery-section">电影词云相册</a>
-        <a href="#report">分析报告</a>
+    <nav style="background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 5px; padding: 15px;">
+        <a href="#overview" style="color: var(--dark-color); margin: 0 20px;">概览</a>
+        <a href="#data-analysis" style="color: var(--dark-color); margin: 0 20px;">数据分析</a>
+        <a href="#image-gallery-section" style="color: var(--dark-color); margin: 0 20px;">电影词云相册</a>
+        <a href="#report" style="color: var(--dark-color); margin: 0 20px;">分析报告</a>
     </nav>
     <!-- 概览部分 -->
-    <!-- 概览部分修改 -->
+    <!-- 概览部分（参考豆瓣年度榜样式） -->
     <section id="overview" class="section">
-        <h2 style="text-align: center;">豆瓣Top250电影概览</h2> <!-- 标题居中 -->
-        <div class="text-content" style="text-align: center;"> <!-- 内容容器居中 -->
-            <p>
-                豆瓣电影Top250分析报告<br>
-                基本统计:<br>
-                - 电影总数: 147<br>
-                - 平均评分: 9.06<br>
-                - 平均评价人数: 1,024,265<br>
-                - 时间跨度: 1936 至 2023<br><br>
-                热门国家:<br>
-                &emsp;&emsp;国家  &emsp;电影数量<br>
-                &emsp;&emsp;美国    &emsp;70<br>
-                &emsp;&emsp;日本    &emsp;17<br>
-                &emsp;&emsp;中国香港 &emsp;11<br>
-                &emsp;&emsp;中国大陆 &emsp;9<br>
-                &emsp;&emsp;英国    &emsp;9<br><br>
-                热门类型:<br>
-                &emsp;&emsp;类型  &emsp;出现次数<br>
-                &emsp;&emsp;剧情   &emsp;115<br>
-                &emsp;&emsp;爱情    &emsp;37<br>
-                &emsp;&emsp;喜剧    &emsp;33<br>
-                &emsp;&emsp;冒险    &emsp;32<br>
-                &emsp;&emsp;奇幻    &emsp;29<br><br>
-                情感得分与电影评分的皮尔逊相关系数: 0.239802391206422<br><br>
-                LDA主题模型关键词:<br>
-                主题 1: 爱情, 生活, 喜欢, 美好, 故事, 如果, you, 片子, 女主, 生命<br>
-                主题 2: 故事, 喜欢, 剧情, 好看, 经典, 导演, 人物, 片子, 虽然, 镜头<br>
-                主题 3: 导演, 这么, 故事, 问题, 男主, 观众, 表演, 中国, 一次, 角色<br>
-                主题 4: 世界, 人类, 故事, 宫崎骏, 人生, 现实, 美好, 动画, 存在, 永远<br>
-                主题 5: 孩子, 如果, 男人, 人生, 女性, 女人, 父亲, 这种, 希望, 选择
-            </p>
+        <h2 class="section-title">概览</h2>
+        <div class="overview-content">
+            <p>这里添加您的概览内容，参考豆瓣年度榜的排版风格，可使用分段和重点标注：</p>
+            <p>在光影的长河中，250部佳作如星辰般闪耀，跨越87载时光（1936-2023），承载着不同文化的叙事密码。</p>
+            <p><strong>核心数据速览</strong>：</p>
+            <ul style="list-style: none; padding-left: 20px; color: #333;">
+                <li>- 电影总数：147部</li>
+                <li>- 平均评分：9.06分</li>
+                <li>- 最热国家：美国（70部）</li>
+                <li>- 高频类型：剧情（115次）</li>
+            </ul>
         </div>
     </section>
    
     <!-- 数据分析部分 -->
     <section id="data-analysis" class="section">
-        <h2>数据分析</h2>
-        <!-- 图片布局改为每行3张 -->
+        <h2 class="section-title">数据分析</h2>
         <div class="image-row">
+            <img src="8_rating_distribution.png" alt="评分分布" class="analysis-image">
             <img src="8_rating_distribution.png" alt="评分分布" class="analysis-image">
             <img src="9_top_countries.png" alt="各国电影数量Top10" class="analysis-image">
             <img src="10_rating_vs_reviews.png" alt="评分与评价人数的关系" class="analysis-image">
@@ -272,6 +335,12 @@
             <img src="蝙蝠侠:黑暗骑士崛起_wordcloud.png" alt="蝙蝠侠:黑暗骑士崛起词云">
             <img src="辩护人_wordcloud.png" alt="辩护人词云">
             <!-- 继续添加其他电影词云图 -->
+        </div>
+        <!-- 新增电影台词模块 -->
+        <div class="quote-section">
+            <h3 style="font-size: 1.5em; color: #333; margin-bottom: 10px;">经典台词</h3>
+            <p style="font-size: 1.2em; color: #666;">「人生就像一盒巧克力，你永远不知道下一颗是什么味道」</p>
+            <p style="font-size: 0.9em; color: #999;">——《阿甘正传》</p>
         </div>
     </section>
     <!-- 分析报告部分 -->
