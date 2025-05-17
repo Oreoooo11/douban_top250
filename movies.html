@@ -146,7 +146,7 @@
 <body>
     <!-- 背景音乐 -->
     <audio id="bgMusic" autoplay loop preload="auto" volume="0.2">
-        <source src="your_background_music.mp3" type="audio/mpeg">
+        <source src="background_music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- 豆瓣风格头部 -->
@@ -280,8 +280,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadCsv('3_genre_counts.csv', 'genre-counts-table');
             
-            // 背景图片和音乐配置提示
-            console.log('提示：请将您的背景图片命名为"your_background.jpg"，背景音乐命名为"your_background_music.mp3"，并放置在与HTML文件相同的目录下。');
         });
     </script>
 </body>
