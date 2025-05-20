@@ -536,11 +536,35 @@
     </div>
 
     <script>
-        // 相册切换函数
+         // 相册切换函数
         function toggleGallery() {
-            let gallery = document.getElementById('image-gallery');
-            gallery.style.display = gallery.style.display === 'none' ? 'flex' : 'none';
+            const gallery = document.getElementById('image-gallery');
+            const mainButton = document.getElementById('mainGalleryButton');
+            const fixedButton = document.getElementById('fixedGalleryButton');
+            
+            if (gallery.style.display === 'none' || !gallery.style.display) {
+                gallery.style.display = 'flex';
+                mainButton.innerHTML = '收起相册 <i class="fa fa-chevron-up"></i>';
+                fixedButton.innerHTML = '收起相册 <i class="fa fa-chevron-up"></i>';
+            } else {
+                gallery.style.display = 'none';
+                mainButton.innerHTML = '展开相册 <i class="fa fa-chevron-down"></i>';
+                fixedButton.innerHTML = '展开相册 <i class="fa fa-chevron-down"></i>';
+            }
         }
+
+        // 滚动事件监听 - 控制固定按钮显示
+        window.addEventListener('scroll', () => {
+            const fixedButton = document.getElementById('fixedGalleryButton');
+            const gallerySection = document.getElementById('image-gallery-section');
+            
+            if (window.scrollY > gallerySection.offsetTop - 100) {
+                fixedButton.style.display = 'block';
+            } else {
+                fixedButton.style.display = 'none';
+            }
+        });
+
 
         // 表格展开/收起函数
         function toggleTable(containerId, button) {
