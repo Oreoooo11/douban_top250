@@ -27,11 +27,6 @@
             padding: 25px;
         }
 
-        #overview .text-content {
-            text-align: center;
-            white-space: pre-wrap;
-        }
-
         .section-title {
             font-size: 1.8em;
             color: #222;
@@ -149,8 +144,8 @@
 
     <!-- 概览部分（添加douban-card类以应用卡片样式） -->
     <section id="overview" class="douban-card section">
-        <h2 style="text-align: center;">豆瓣Top250电影概览</h2> <!-- 标题居中 -->
-        <div class="text-content"> <!-- 内容容器已通过CSS居中 -->
+        <h2 class="section-title">豆瓣Top250电影概览</h2>
+        <div class="text-content" style="text-align: center;">
             <p>豆瓣电影Top250分析报告</p>
             <p>基本统计:<br>
                - 电影总数: 147<br>
@@ -444,6 +439,7 @@
 
     <!-- 分析报告 -->
     <section id="report" class="douban-card">
+        <h2 class="section-title">评论分析报告</h2>
         <div class="report-content">
             <p>本部分基于豆瓣Top250电影的评论数据，进行了深入的文本分析和情感挖掘。</p>
             <p>主要发现包括：</p>
@@ -492,8 +488,6 @@
                 button.innerHTML = '打开相册 <i class="fa fa-chevron-down"></i>';
             }
         }
-
-        // 移除冗余的滚动事件监听和DOMContentLoaded事件处理
     </script>
 </body>
-</html>   
+</html> 
