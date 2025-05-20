@@ -621,3 +621,405 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豆瓣Top250电影分析</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        /* 豆瓣风格样式 */
+        body {
+            font-family: "Helvetica Neue", "Microsoft YaHei", sans-serif;
+            color: #333;
+            background-color: #f5f5f5;
+            background-image: url('background.jpg'); /* 背景图片配置 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .douban-card {
+            background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #222;
+            border-left: 4px solid #167ac6;
+            padding-left: 12px;
+            margin-bottom: 20px;
+        }
+
+        .overview-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* 导航栏均匀分布 */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            padding: 0;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around; /* 均匀分布导航项 */
+        }
+
+        nav a {
+            color: #333;
+            padding: 15px 0;
+            text-decoration: none;
+            transition: all 0.3s;
+            flex: 1; /* 平均分配宽度 */
+            text-align: center;
+        }
+
+        nav a:hover {
+            color: #167ac6;
+            background-color: rgba(22, 122, 198, 0.05);
+        }
+
+        /* 图片布局 */
+        .image-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .analysis-image {
+            max-width: 32%;
+            border-radius: 6px;
+            transition: transform 0.3s;
+        }
+
+        .analysis-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* 表格优化 - 缩略/展开功能 */
+        .table-container {
+            max-height: 300px; /* 初始最大高度 */
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            position: relative;
+        }
+
+        .table-container.expanded {
+            max-height: 2000px; /* 展开后的最大高度 */
+        }
+
+        /* 统一按钮样式 */
+        .toggle-button {
+            background-color: #f5f5f5;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 8px 15px;
+            margin-top: 10px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .toggle-button:hover {
+            background-color: #e5e5e5;
+        }
+
+        table {
+            max-width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            border: 1px solid #e5e5e5;
+            padding: 10px;
+            text-align: center;
+        }
+        /* 电影词云相册样式 */
+        .image-gallery {
+            display: none;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .image-gallery img {
+            width: calc(12.5% - 15px); /* 每行8张图片 */
+            height: auto;
+            transition: transform 0.3s;
+            border-radius: 6px;
+        }
+
+        .image-gallery img:hover {
+            transform: scale(1.03);
+        }
+
+        /* 固定位置的相册按钮 */
+        .fixed-gallery-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #167ac6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        .fixed-gallery-button:hover {
+            background: #1369aa;
+            transform: translateY(-2px);
+        }
+
+        /* 评论分析报告样式 */
+        .report-content {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading {
+            color: #666;
+            padding: 15px;
+        }
+        
+        /* 音乐控制按钮 */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: #167ac6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景音乐 -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="background_music.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+    
+    <!-- 音乐控制按钮 -->
+    <button class="music-control" id="musicToggle">播放音乐</button>
+
+    <!-- 豆瓣风格头部 -->
+    <div class="douban-card">
+        <h1 style="font-size: 2.2em; color: #167ac6; margin-bottom: 10px;">豆瓣Top250电影数据分析</h1>
+        <p style="color: #666; margin-bottom: 25px;">在光影的长河中，250部佳作如星辰般闪耀，跨越87载时光(1936-2023)，承载着不同文化的叙事密码。</p>
+    </div>
+
+    <!-- 导航栏（均匀分布） -->
+    <nav>
+        <a href="#overview">概览</a>
+        <a href="#data-analysis">数据分析</a>
+        <a href="#image-gallery-section">电影词云相册</a>
+        <a href="#report">分析报告</a>
+    </nav>
+
+    <!-- 概览部分 -->
+    <section id="overview" class="douban-card">
+        <h2 class="section-title">概览</h2>
+        <div class="overview-content">
+            <p>豆瓣电影Top250分析报告</p>
+            <p>基本统计:<br>
+               - 电影总数: 147<br>
+               - 平均评分: 9.06<br>
+               - 平均评价人数: 1,024,265<br>
+               - 时间跨度: 1936 至 2023</p>
+            <p>热门国家:<br>
+               &emsp;&emsp;美国 70部 | 日本 17部 | 中国香港 11部</p>
+            <p>热门类型:<br>
+               &emsp;&emsp;剧情 115次 | 爱情 37次 | 喜剧 33次</p>
+        </div>
+    </section>
+
+    <!-- 数据分析部分 -->
+    <section id="data-analysis" class="douban-card">
+        <h2 class="section-title">数据分析</h2>
+        <div class="image-row">
+            <img src="8_rating_distribution.png" alt="评分分布" class="analysis-image">
+            <img src="9_top_countries.png" alt="各国电影数量Top10" class="analysis-image">
+            <img src="10_rating_vs_reviews.png" alt="评分与评价人数的关系" class="analysis-image">
+        </div>
+        <div class="image-row">
+            <img src="11_genre_wordcloud.png" alt="电影类型词云" class="analysis-image">
+            <img src="12_year_distribution.png" alt="电影年份分布" class="analysis-image">
+            <img src="14_genre_rating_boxplot.png" alt="不同类型电影评分分布" class="analysis-image">
+        </div>
+        <div class="image-row">
+            <img src="18_decade_trend.png" alt="电影数量与评分随时间变化" class="analysis-image">
+            <img src="21_sentiment_vs_rating.png" alt="评论情感得分与电影评分关系" class="analysis-image">
+            <img src="22_topic_distribution.png" alt="主题分布" class="analysis-image">
+        </div>
+
+        <!-- 类型频率统计表格（优化版） -->
+        <h3>类型频率统计</h3>
+        <div class="table-container" id="genreTableContainer">
+            <div class="loading">加载中...</div>
+            <table id="genre-counts-table">
+                <thead><tr><th>类型</th><th>出现次数</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="toggle-button" onclick="toggleTable('genreTableContainer', this)">
+            展开表格 <i class="fa fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- 相册部分 -->
+    <section id="image-gallery-section" class="douban-card">
+        <h2 class="section-title">电影词云相册</h2>
+        <button class="toggle-button" onclick="toggleGallery()">打开相册</button>
+        <div class="image-gallery" id="image-gallery">
+            <!-- 相册图片内容保持不变 -->
+            <img src="7号房的礼物_wordcloud.png" alt="7号房的礼物词云">
+            <!-- 其他图片... -->
+        </div>
+    </section>
+
+    <!-- 分析报告 -->
+    <section id="report" class="douban-card">
+        <h2 class="section-title">评论分析报告</h2>
+        <p>本部分基于豆瓣Top250电影的评论数据，进行了深入的文本分析和情感挖掘。</p>
+            <p>主要发现包括：</p>
+            <ul style="display: inline-block; text-align: left;">
+                <li>观众对剧情类电影的评价最为积极，情感得分平均达到8.9分</li>
+                <li>动作类电影的评论数量最多，但情感得分相对较低，平均为7.8分</li>
+                <li>高频词分析显示，"经典"、"感动"、"剧情"、"演技"是出现频率最高的正面词汇</li>
+                <li>通过主题模型发现，观众关注的核心主题包括：故事结构、人物塑造、视觉效果和情感共鸣</li>
+                <li>年代趋势分析表明，近年来观众对电影的剧情创新性要求越来越高</li>
+            </ul>
+            <p>详细分析内容将在后续更新中呈现...</p>
+    </section>
+
+    <!-- 页脚 -->
+    <div style="margin-top: 40px; padding: 20px; text-align: center; color: #666;">
+        <p>数据来源：豆瓣电影 &copy; 2025</p>
+    </div>
+
+    <script>
+        // 音乐控制
+        const audio = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        let isMusicPlaying = false;
+        
+        // 音乐淡入效果
+        function fadeInMusic() {
+            if (audio.volume < 0.2) {
+                audio.volume += 0.01;
+                setTimeout(fadeInMusic, 50);
+            }
+        }
+        
+        // 音乐淡出效果
+        function fadeOutMusic() {
+            if (audio.volume > 0) {
+                audio.volume -= 0.01;
+                setTimeout(fadeOutMusic, 50);
+            } else {
+                audio.pause();
+            }
+        }
+        
+        // 音乐切换
+        musicToggle.addEventListener('click', () => {
+            if (isMusicPlaying) {
+                fadeOutMusic();
+                musicToggle.textContent = '播放音乐';
+            } else {
+                audio.play();
+                fadeInMusic();
+                musicToggle.textContent = '暂停音乐';
+            }
+            isMusicPlaying = !isMusicPlaying;
+        });
+
+        // 相册切换函数
+        function toggleGallery() {
+            const gallery = document.getElementById('image-gallery');
+            const button = event.target;
+            
+            if (gallery.style.display === 'none' || !gallery.style.display) {
+                gallery.style.display = 'flex';
+                button.textContent = '收起相册';
+            } else {
+                gallery.style.display = 'none';
+                button.textContent = '打开相册';
+            }
+        }
+
+        // 滚动事件监听 - 控制固定按钮显示
+        window.addEventListener('scroll', () => {
+            const fixedButton = document.getElementById('fixedGalleryButton');
+            const gallerySection = document.getElementById('image-gallery-section');
+            
+            if (window.scrollY > gallerySection.offsetTop - 100) {
+                fixedButton.style.display = 'block';
+            } else {
+                fixedButton.style.display = 'none';
+            }
+        });
+
+        // 表格展开/收起函数
+        function toggleTable(containerId, button) {
+            const container = document.getElementById(containerId);
+            container.classList.toggle('expanded');
+            
+            if (container.classList.contains('expanded')) {
+                button.textContent = '收起表格';
+            } else {
+                button.textContent = '展开表格';
+            }
+        }
+
+        // CSV加载函数
+        function loadCsv(filePath, targetTableId) {
+            Papa.parse(filePath, {
+                download: true,
+                header: true,
+                complete: (results) => {
+                    const tbody = document.getElementById(targetTableId).querySelector('tbody');
+                    tbody.innerHTML = '';
+                    results.data.forEach(row => {
+                        const tr = tbody.insertRow();
+                        tr.insertCell().textContent = row['类型'];
+                        tr.insertCell().textContent = row['出现次数'];
+                    });
+                    
+                    // 加载完成后显示前几行，隐藏其余行
+                    setTimeout(() => {
+                        const container = document.getElementById('genreTableContainer');
+                        container.classList.remove('expanded');
+                    }, 500);
+                }
+            });
+        }
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCsv('3_genre_counts.csv', 'genre-counts-table');
+        });
+    </script>
+</body>
+</html>
