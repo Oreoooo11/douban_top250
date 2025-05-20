@@ -752,7 +752,46 @@
             "重庆森林_wordcloud.png",
             "纵横四海_wordcloud.png"
       ];
+        
+      // 定义图片数组（与 HTML 中的容器 ID 匹配）
+      const movieWordclouds = [/* 你的 250 张图片列表 */];
+      
+      // 相册切换函数
+      document.getElementById('galleryToggle').addEventListener('click', function() {
+        const gallery = document.getElementById('imageGallery');
+        const toggleText = document.getElementById('toggleText');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (gallery.classList.contains('hidden')) {
+          gallery.classList.remove('hidden');
+          
+          // 首次展开时生成图片
+          if (gallery.children.length === 0) {
+            movieWordclouds.forEach((imageName) => {
+              const movieTitle = imageName.replace('_wordcloud.png', '');
+              const card = document.createElement('div');
+              card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105';
+              card.innerHTML = `
+                <img src="${imageName}" alt="${movieTitle}词云图" loading="lazy" class="w-full h-48 object-cover">
+                <div class="p-3">
+                  <h3 class="font-medium text-sm truncate">${movieTitle}</h3>
+                </div>
+              `;
+              gallery.appendChild(card);
+            });
+          }
     
+          toggleText.textContent = '收起相册';
+          toggleIcon.classList.remove('fa-chevron-down');
+          toggleIcon.classList.add('fa-chevron-up');
+        } else {
+          gallery.classList.add('hidden');
+          toggleText.textContent = '展开相册';
+          toggleIcon.classList.remove('fa-chevron-up');
+          toggleIcon.classList.add('fa-chevron-down');
+        }
+      });
+
       // 获取容器元素
       const gallery = document.getElementById('wordcloudGallery');
     
