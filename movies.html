@@ -450,5 +450,55 @@
         <p>数据来源：豆瓣电影 &copy; 2025</p>
     </div>
 
+<!-- 页面其他部分保持不变... -->
+
+    <script>
+        // 相册切换函数（使用max-height和opacity实现平滑过渡）
+        function toggleGallery() {
+            const gallery = document.getElementById('image-gallery');
+            const button = document.querySelector('.table-toggle');
+            
+            if (gallery.style.maxHeight === '0px' || !gallery.style.maxHeight) {
+                gallery.style.maxHeight = gallery.scrollHeight + 'px';
+                gallery.style.opacity = '1';
+                button.innerHTML = '收起相册 <i class="fa fa-chevron-up"></i>';
+            } else {
+                gallery.style.maxHeight = '0px';
+                gallery.style.opacity = '0';
+                button.innerHTML = '打开相册 <i class="fa fa-chevron-down"></i>';
+            }
+        }
+
+        // 滚动事件监听 - 控制固定按钮显示
+        window.addEventListener('scroll', () => {
+            const fixedButton = document.getElementById('fixedGalleryButton');
+            
+            if (window.scrollY > 300) {
+                fixedButton.style.display = 'block';
+            } else {
+                fixedButton.style.display = 'none';
+            }
+        });
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', () => {
+            // 音乐播放控制
+            const audio = document.getElementById('bgMusic');
+            let musicPlayed = false;
+            
+            // 尝试自动播放音乐
+            audio.play().catch(e => {
+                console.log('自动播放失败:', e);
+                // 用户交互后播放音乐
+                document.addEventListener('click', () => {
+                    if (!musicPlayed) {
+                        audio.muted = false;
+                        audio.play().catch(err => console.log('用户交互后仍无法播放:', err));
+                        musicPlayed = true;
+                    }
+                }, { once: true });
+            });
+        });
+    </script>
 </body>
-</html>
+</html>    
