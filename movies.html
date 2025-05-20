@@ -1,625 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豆瓣Top250电影分析</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        /* 豆瓣风格样式 */
-        body {
-            font-family: "Helvetica Neue", "Microsoft YaHei", sans-serif;
-            color: #333;
-            background-color: #f5f5f5;
-            background-image: url('background.jpg'); /* 背景图片配置 */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .douban-card {
-            background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            padding: 25px;
-        }
-
-        .section-title {
-            font-size: 1.8em;
-            color: #222;
-            border-left: 4px solid #167ac6;
-            padding-left: 12px;
-            margin-bottom: 20px;
-        }
-
-        .overview-content {
-            text-align: center;
-            padding: 20px;
-        }
-
-        /* 导航栏均匀分布 */
-        nav {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            padding: 0;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-around; /* 均匀分布导航项 */
-        }
-
-        nav a {
-            color: #333;
-            padding: 15px 0;
-            text-decoration: none;
-            transition: all 0.3s;
-            flex: 1; /* 平均分配宽度 */
-            text-align: center;
-        }
-
-        nav a:hover {
-            color: #167ac6;
-            background-color: rgba(22, 122, 198, 0.05);
-        }
-
-        /* 图片布局 */
-        .image-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 25px 0;
-        }
-
-        .analysis-image {
-            max-width: 32%;
-            border-radius: 6px;
-            transition: transform 0.3s;
-        }
-
-        .analysis-image:hover {
-            transform: scale(1.02);
-        }
-
-        /* 表格优化 - 缩略/展开功能 */
-        .table-container {
-            max-height: 300px; /* 初始最大高度 */
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-            position: relative;
-        }
-
-        .table-container.expanded {
-            max-height: 2000px; /* 展开后的最大高度 */
-        }
-
-        .table-toggle {
-            background-color: #f5f5f5;
-            border: 1px solid #e5e5e5;
-            border-radius: 4px;
-            padding: 8px 15px;
-            margin-top: 10px;
-            cursor: pointer;
-            text-align: center;
-            display: inline-block;
-            transition: all 0.3s;
-        }
-
-        .table-toggle:hover {
-            background-color: #e5e5e5;
-        }
-
-        table {
-            max-width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            border: 1px solid #e5e5e5;
-            padding: 10px;
-            text-align: center;
-        }
-        /* 电影词云相册样式 */
-        .image-gallery {
-            display: none;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .image-gallery img {
-            width: calc(12.5% - 15px); /* 每行8张图片 */
-            height: auto;
-            transition: transform 0.3s;
-            border-radius: 6px;
-        }
-
-        .image-gallery img:hover {
-            transform: scale(1.03);
-        }
-
-        /* 固定位置的相册按钮 */
-        .fixed-gallery-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #167ac6;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            cursor: pointer;
-            z-index: 100;
-            display: none;
-            transition: all 0.3s;
-        }
-
-        .fixed-gallery-button:hover {
-            background: #1369aa;
-            transform: translateY(-2px);
-        }
-
-        /* 评论分析报告样式 */
-        .report-content {
-            text-align: center;
-            padding: 20px;
-        /* 其他样式 */
-        .gallery-button {
-            background: #f5f5f5;
-            border: 1px solid #e5e5e5;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .image-gallery img {
-            width: 180px;
-            height: 180px;
-            transition: transform 0.3s;
-        }
-
-        .loading {
-            color: #666;
-            padding: 15px;
-        }
-    </style>
-</head>
-<body>
-    <!-- 背景音乐 -->
-    <audio id="bgMusic" autoplay loop preload="auto" volume="0.2">
-        <source src="background_music.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- 豆瓣风格头部 -->
-    <div class="douban-card">
-        <h1 style="font-size: 2.2em; color: #167ac6; margin-bottom: 10px;">豆瓣Top250电影数据分析</h1>
-        <p style="color: #666; margin-bottom: 25px;">在光影的长河中，250部佳作如星辰般闪耀，跨越87载时光(1936-2023)，承载着不同文化的叙事密码。</p>
-    </div>
-
-    <!-- 导航栏（均匀分布） -->
-    <nav>
-        <a href="#overview">概览</a>
-        <a href="#data-analysis">数据分析</a>
-        <a href="#image-gallery-section">电影词云相册</a>
-        <a href="#report">分析报告</a>
-    </nav>
-
-    <!-- 概览部分 -->
-    <section id="overview" class="douban-card">
-        <h2 class="section-title">概览</h2>
-        <div class="overview-content">
-            <p>豆瓣电影Top250分析报告</p>
-            <p>基本统计:<br>
-               - 电影总数: 147<br>
-               - 平均评分: 9.06<br>
-               - 平均评价人数: 1,024,265<br>
-               - 时间跨度: 1936 至 2023</p>
-            <p>热门国家:<br>
-               &emsp;&emsp;美国 70部 | 日本 17部 | 中国香港 11部</p>
-            <p>热门类型:<br>
-               &emsp;&emsp;剧情 115次 | 爱情 37次 | 喜剧 33次</p>
-        </div>
-    </section>
-
-    <!-- 数据分析部分 -->
-    <section id="data-analysis" class="douban-card">
-        <h2 class="section-title">数据分析</h2>
-        <div class="image-row">
-            <img src="8_rating_distribution.png" alt="评分分布" class="analysis-image">
-            <img src="9_top_countries.png" alt="各国电影数量Top10" class="analysis-image">
-            <img src="10_rating_vs_reviews.png" alt="评分与评价人数的关系" class="analysis-image">
-        </div>
-        <div class="image-row">
-            <img src="11_genre_wordcloud.png" alt="电影类型词云" class="analysis-image">
-            <img src="12_year_distribution.png" alt="电影年份分布" class="analysis-image">
-            <img src="14_genre_rating_boxplot.png" alt="不同类型电影评分分布" class="analysis-image">
-        </div>
-        <div class="image-row">
-            <img src="18_decade_trend.png" alt="电影数量与评分随时间变化" class="analysis-image">
-            <img src="21_sentiment_vs_rating.png" alt="评论情感得分与电影评分关系" class="analysis-image">
-            <img src="22_topic_distribution.png" alt="主题分布" class="analysis-image">
-        </div>
-
-        <!-- 类型频率统计表格（优化版） -->
-        <h3>类型频率统计</h3>
-        <div class="table-container" id="genreTableContainer">
-            <div class="loading">加载中...</div>
-            <table id="genre-counts-table">
-                <thead><tr><th>类型</th><th>出现次数</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="table-toggle" onclick="toggleTable('genreTableContainer', this)">
-            展开表格 <i class="fa fa-chevron-down"></i>
-        </div>
-    </section>
-
-    <!-- 相册部分 -->
-    <section id="image-gallery-section" class="douban-card">
-        <h2 class="section-title">电影词云相册</h2>
-        <button class="gallery-button" onclick="toggleGallery()">打开相册</button>
-        <div class="image-gallery" id="image-gallery">
-            <img src="7号房的礼物_wordcloud.png" alt="7号房的礼物词云">
-            <img src="2001太空漫游_wordcloud.png" alt="2001太空漫游词云">
-            <img src="阿凡达_wordcloud.png" alt="阿凡达词云">
-            <img src="阿甘正传_wordcloud.png" alt="阿甘正传词云">
-            <img src="爱乐之城_wordcloud.png" alt="爱乐之城词云">
-            <img src="爱在黎明破晓前_wordcloud.png" alt="爱在黎明破晓前词云">
-            <img src="爱在日落黄昏时_wordcloud.png" alt="爱在日落黄昏时词云">
-            <img src="爱在午夜降临前_wordcloud.png" alt="爱在午夜降临前词云">
-            <img src="傲慢与偏见_wordcloud.png" alt="傲慢与偏见词云">
-            <img src="霸王别姬_wordcloud.png" alt="霸王别姬词云">
-            <img src="白日梦想家_wordcloud.png" alt="白日梦想家词云">
-            <img src="爆裂鼓手_wordcloud.png" alt="爆裂鼓手词云">
-            <img src="背靠背,脸对脸_wordcloud.png" alt="背靠背,脸对脸词云">
-            <img src="被解救的姜戈_wordcloud.png" alt="被解救的姜戈词云">
-            <img src="被嫌弃的松子的一生_wordcloud.png" alt="被嫌弃的松子的一生词云">
-            <img src="本杰明·巴顿奇事_wordcloud.png" alt="本杰明·巴顿奇事词云">
-            <img src="蝙蝠侠:黑暗骑士_wordcloud.png" alt="蝙蝠侠:黑暗骑士词云">
-            <img src="蝙蝠侠:黑暗骑士崛起_wordcloud.png" alt="蝙蝠侠:黑暗骑士崛起词云">
-            <img src="辩护人_wordcloud.png" alt="辩护人词云">
-            <img src="冰川时代_wordcloud.png" alt="冰川时代词云">
-            <img src="冰雪奇缘_wordcloud.png" alt="冰雪奇缘词云">
-            <img src="波西米亚狂想曲_wordcloud.png" alt="波西米亚狂想曲词云">
-            <img src="搏击俱乐部_wordcloud.png" alt="搏击俱乐部词云">
-            <img src="布达佩斯大饭店_wordcloud.png" alt="布达佩斯大饭店词云">
-            <img src="步履不停_wordcloud.png" alt="步履不停词云">
-            <img src="侧耳倾听_wordcloud.png" alt="侧耳倾听词云">
-            <img src="茶馆_wordcloud.png" alt="茶馆词云">
-            <img src="超能陆战队_wordcloud.png" alt="超能陆战队词云">
-            <img src="超脱_wordcloud.png" alt="超脱词云">
-            <img src="沉默的羔羊_wordcloud.png" alt="沉默的羔羊词云">
-            <img src="城市之光_wordcloud.png" alt="城市之光词云">
-            <img src="初恋这件小事_wordcloud.png" alt="初恋这件小事词云">
-            <img src="楚门的世界_wordcloud.png" alt="楚门的世界词云">
-            <img src="触不可及_wordcloud.png" alt="触不可及词云">
-            <img src="穿条纹睡衣的男孩_wordcloud.png" alt="穿条纹睡衣的男孩词云">
-            <img src="春光乍泄_wordcloud.png" alt="春光乍泄词云">
-            <img src="达拉斯买家俱乐部_wordcloud.png" alt="达拉斯买家俱乐部词云">
-            <img src="大佛普拉斯_wordcloud.png" alt="大佛普拉斯词云">
-            <img src="大红灯笼高高挂_wordcloud.png" alt="大红灯笼高高挂词云">
-            <img src="大话西游之大圣娶亲_wordcloud.png" alt="大话西游之大圣娶亲词云">
-            <img src="大话西游之月光宝盒_wordcloud.png" alt="大话西游之月光宝盒词云">
-            <img src="大闹天宫_wordcloud.png" alt="大闹天宫词云">
-            <img src="大鱼_wordcloud.png" alt="大鱼词云">
-            <img src="当幸福来敲门_wordcloud.png" alt="当幸福来敲门词云">
-            <img src="盗梦空间_wordcloud.png" alt="盗梦空间词云">
-            <img src="低俗小说_wordcloud.png" alt="低俗小说词云">
-            <img src="第六感_wordcloud.png" alt="第六感词云">
-            <img src="电锯惊魂_wordcloud.png" alt="电锯惊魂词云">
-            <img src="谍影重重_wordcloud.png" alt="谍影重重词云">
-            <img src="谍影重重2_wordcloud.png" alt="谍影重重2词云">
-            <img src="谍影重重3_wordcloud.png" alt="谍影重重3词云">
-            <img src="东京教父_wordcloud.png" alt="东京教父词云">
-            <img src="东邪西毒_wordcloud.png" alt="东邪西毒词云">
-            <img src="断背山_wordcloud.png" alt="断背山词云">
-            <img src="房间_wordcloud.png" alt="房间词云">
-            <img src="放牛班的春天_wordcloud.png" alt="放牛班的春天词云">
-            <img src="飞屋环游记_wordcloud.png" alt="飞屋环游记词云">
-            <img src="飞越疯人院_wordcloud.png" alt="飞越疯人院词云">
-            <img src="风之谷_wordcloud.png" alt="风之谷词云">
-            <img src="疯狂的麦克斯4：狂暴之路_wordcloud.png" alt="疯狂的麦克斯4：狂暴之路词云">
-            <img src="疯狂的石头_wordcloud.png" alt="疯狂的石头词云">
-            <img src="疯狂动物城_wordcloud.png" alt="疯狂动物城词云">
-            <img src="疯狂原始人_wordcloud.png" alt="疯狂原始人词云">
-            <img src="芙蓉镇_wordcloud.png" alt="芙蓉镇词云">
-            <img src="釜山行_wordcloud.png" alt="釜山行词云">
-            <img src="钢琴家_wordcloud.png" alt="钢琴家词云">
-            <img src="高山下的花环_wordcloud.png" alt="高山下的花环词云">
-            <img src="告白_wordcloud.png" alt="告白词云">
-            <img src="功夫_wordcloud.png" alt="功夫词云">
-            <img src="牯岭街少年杀人事件_wordcloud.png" alt="牯岭街少年杀人事件词云">
-            <img src="怪兽电力公司_wordcloud.png" alt="怪兽电力公司词云">
-            <img src="鬼子来了_wordcloud.png" alt="鬼子来了词云">
-            <img src="哈尔的移动城堡_wordcloud.png" alt="哈尔的移动城堡词云">
-            <img src="哈利·波特与阿兹卡班的囚徒_wordcloud.png" alt="哈利·波特与阿兹卡班的囚徒词云">
-            <img src="哈利·波特与凤凰社_wordcloud.png" alt="哈利·波特与凤凰社词云">
-            <img src="哈利·波特与火焰杯_wordcloud.png" alt="哈利·波特与火焰杯词云">
-            <img src="哈利·波特与密室_wordcloud.png" alt="哈利·波特与密室词云">
-            <img src="哈利·波特与魔法石_wordcloud.png" alt="哈利·波特与魔法石词云">
-            <img src="哈利·波特与死亡圣器(上)_wordcloud.png" alt="哈利·波特与死亡圣器(上)词云">
-            <img src="哈利·波特与死亡圣器(下)_wordcloud.png" alt="哈利·波特与死亡圣器(下)词云">
-            <img src="还有明天_wordcloud.png" alt="还有明天词云">
-            <img src="海边的曼彻斯特_wordcloud.png" alt="海边的曼彻斯特词云">
-            <img src="海蒂和爷爷_wordcloud.png" alt="海蒂和爷爷词云">
-            <img src="海街日记_wordcloud.png" alt="海街日记词云">
-            <img src="海上钢琴师_wordcloud.png" alt="海上钢琴师词云">
-            <img src="海豚湾_wordcloud.png" alt="海豚湾词云">
-            <img src="何以为家_wordcloud.png" alt="何以为家词云">
-            <img src="黑客帝国_wordcloud.png" alt="黑客帝国词云">
-            <img src="黑客帝国2：重装上阵_wordcloud.png" alt="黑客帝国2：重装上阵词云">
-            <img src="黑客帝国3：矩阵革命_wordcloud.png" alt="黑客帝国3：矩阵革命词云">
-            <img src="黑天鹅_wordcloud.png" alt="黑天鹅词云">
-            <img src="红辣椒_wordcloud.png" alt="红辣椒词云">
-            <img src="蝴蝶效应_wordcloud.png" alt="蝴蝶效应词云">
-            <img src="虎口脱险_wordcloud.png" alt="虎口脱险词云">
-            <img src="花束般的恋爱_wordcloud.png" alt="花束般的恋爱词云">
-            <img src="花样年华_wordcloud.png" alt="花样年华词云">
-            <img src="荒蛮故事_wordcloud.png" alt="荒蛮故事词云">
-            <img src="彗星来的那一夜_wordcloud.png" alt="彗星来的那一夜词云">
-            <img src="魂断蓝桥_wordcloud.png" alt="魂断蓝桥词云">
-            <img src="活着_wordcloud.png" alt="活着词云">
-            <img src="火星救援_wordcloud.png" alt="火星救援词云">
-            <img src="机器人之梦_wordcloud.png" alt="机器人之梦词云">
-            <img src="机器人总动员_wordcloud.png" alt="机器人总动员词云">
-            <img src="记忆碎片_wordcloud.png" alt="记忆碎片词云">
-            <img src="寄生虫_wordcloud.png" alt="寄生虫词云">
-            <img src="加勒比海盗_wordcloud.png" alt="加勒比海盗词云">
-            <img src="剪刀手爱德华_wordcloud.png" alt="剪刀手爱德华词云">
-            <img src="教父_wordcloud.png" alt="教父词云">
-            <img src="教父2_wordcloud.png" alt="教父2词云">
-            <img src="教父3_wordcloud.png" alt="教父3词云">
-            <img src="借东西的小人阿莉埃蒂_wordcloud.png" alt="借东西的小人阿莉埃蒂词云">
-            <img src="禁闭岛_wordcloud.png" alt="禁闭岛词云">
-            <img src="惊魂记_wordcloud.png" alt="惊魂记词云">
-            <img src="九品芝麻官_wordcloud.png" alt="九品芝麻官词云">
-            <img src="菊次郎的夏天_wordcloud.png" alt="菊次郎的夏天词云">
-            <img src="看不见的客人_wordcloud.png" alt="看不见的客人词云">
-            <img src="可可西里_wordcloud.png" alt="可可西里词云">
-            <img src="恐怖游轮_wordcloud.png" alt="恐怖游轮词云">
-            <img src="恐怖直播_wordcloud.png" alt="恐怖直播词云">
-            <img src="控方证人_wordcloud.png" alt="控方证人词云">
-            <img src="恋恋笔记本_wordcloud.png" alt="恋恋笔记本词云">
-            <img src="两杆大烟枪_wordcloud.png" alt="两杆大烟枪词云">
-            <img src="龙猫_wordcloud.png" alt="龙猫词云">
-            <img src="卢旺达饭店_wordcloud.png" alt="卢旺达饭店词云">
-            <img src="乱世佳人_wordcloud.png" alt="乱世佳人词云">
-            <img src="罗马假日_wordcloud.png" alt="罗马假日词云">
-            <img src="罗生门_wordcloud.png" alt="罗生门词云">
-            <img src="绿里奇迹_wordcloud.png" alt="绿里奇迹词云">
-            <img src="绿皮书_wordcloud.png" alt="绿皮书词云">
-            <img src="玛丽和马克思_wordcloud.png" alt="玛丽和马克思词云">
-            <img src="猫鼠游戏_wordcloud.png" alt="猫鼠游戏词云">
-            <img src="美国往事_wordcloud.png" alt="美国往事词云">
-            <img src="美国往事_wordcloud.png" alt="美国往事词云">
-            <img src="美丽人生_wordcloud.png" alt="美丽人生词云">
-            <img src="美丽心灵_wordcloud.png" alt="美丽心灵词云">
-            <img src="模仿游戏_wordcloud.png" alt="模仿游戏词云">
-            <img src="摩登时代_wordcloud.png" alt="摩登时代词云">
-            <img src="魔女宅急便_wordcloud.png" alt="魔女宅急便词云">
-            <img src="末代皇帝_wordcloud.png" alt="末代皇帝词云">
-            <img src="末路狂花_wordcloud.png" alt="末路狂花词云">
-            <img src="哪吒闹海_wordcloud.png" alt="哪吒闹海词云">
-            <img src="你的名字。_wordcloud.png" alt="你的名字。词云">
-            <img src="你看起来好像很好吃_wordcloud.png" alt="你看起来好像很好吃词云">
-            <img src="怦然心动_wordcloud.png" alt="怦然心动词云">
-            <img src="贫民窟的百万富翁_wordcloud.png" alt="贫民窟的百万富翁词云">
-            <img src="七武士_wordcloud.png" alt="七武士词云">
-            <img src="七宗罪_wordcloud.png" alt="七宗罪词云">
-            <img src="奇迹男孩_wordcloud.png" alt="奇迹男孩词云">
-            <img src="千钧一发_wordcloud.png" alt="千钧一发词云">
-            <img src="千年女优_wordcloud.png" alt="千年女优词云">
-            <img src="千与千寻_wordcloud.png" alt="千与千寻词云">
-            <img src="倩女幽魂_wordcloud.png" alt="倩女幽魂词云">
-            <img src="窃听风暴_wordcloud.png" alt="窃听风暴词云">
-            <img src="青蛇_wordcloud.png" alt="青蛇词云">
-            <img src="情书_wordcloud.png" alt="情书词云">
-            <img src="请以你的名字呼唤我_wordcloud.png" alt="请以你的名字呼唤我词云">
-            <img src="让子弹飞_wordcloud.png" alt="让子弹飞词云">
-            <img src="人工智能_wordcloud.png" alt="人工智能词云">
-            <img src="熔炉_wordcloud.png" alt="熔炉词云">
-            <img src="入殓师_wordcloud.png" alt="入殓师词云">
-            <img src="弱点_wordcloud.png" alt="弱点词云">
-            <img src="三块广告牌_wordcloud.png" alt="三块广告牌词云">
-            <img src="三傻大闹宝莱坞_wordcloud.png" alt="三傻大闹宝莱坞词云">
-            <img src="色，戒_wordcloud.png" alt="色，戒词云">
-            <img src="杀人回忆_wordcloud.png" alt="杀人回忆词云">
-            <img src="上帝之城_wordcloud.png" alt="上帝之城词云">
-            <img src="少年派的奇幻漂流_wordcloud.png" alt="少年派的奇幻漂流词云">
-            <img src="射雕英雄传之东成西就_wordcloud.png" alt="射雕英雄传之东成西就词云">
-            <img src="神偷奶爸_wordcloud.png" alt="神偷奶爸词云">
-            <img src="狮子王_wordcloud.png" alt="狮子王词云">
-            <img src="十二怒汉_wordcloud.png" alt="十二怒汉词云">
-            <img src="时空恋旅人_wordcloud.png" alt="时空恋旅人词云">
-            <img src="狩猎_wordcloud.png" alt="狩猎词云">
-            <img src="摔跤吧！爸爸_wordcloud.png" alt="摔跤吧！爸爸词云">
-            <img src="死亡诗社_wordcloud.png" alt="死亡诗社词云">
-            <img src="素媛_wordcloud.png" alt="素媛词云">
-            <img src="岁月神偷_wordcloud.png" alt="岁月神偷词云">
-            <img src="泰坦尼克号_wordcloud.png" alt="泰坦尼克号词云">
-            <img src="唐伯虎点秋香_wordcloud.png" alt="唐伯虎点秋香词云">
-            <img src="天空之城_wordcloud.png" alt="天空之城词云">
-            <img src="天使爱美丽_wordcloud.png" alt="天使爱美丽词云">
-            <img src="天书奇谭_wordcloud.png" alt="天书奇谭词云">
-            <img src="天堂电影院_wordcloud.png" alt="天堂电影院词云">
-            <img src="甜蜜蜜_wordcloud.png" alt="甜蜜蜜词云">
-            <img src="头号玩家_wordcloud.png" alt="头号玩家词云">
-            <img src="头脑特工队_wordcloud.png" alt="头脑特工队词云">
-            <img src="完美的世界_wordcloud.png" alt="完美的世界词云">
-            <img src="玩具总动员3_wordcloud.png" alt="玩具总动员3词云">
-            <img src="未麻的部屋_wordcloud.png" alt="未麻的部屋词云">
-            <img src="闻香识女人_wordcloud.png" alt="闻香识女人词云">
-            <img src="我不是药神_wordcloud.png" alt="我不是药神词云">
-            <img src="我是山姆_wordcloud.png" alt="我是山姆词云">
-            <img src="无耻混蛋_wordcloud.png" alt="无耻混蛋词云">
-            <img src="无敌破坏王_wordcloud.png" alt="无敌破坏王词云">
-            <img src="无间道_wordcloud.png" alt="无间道词云">
-            <img src="无间道2_wordcloud.png" alt="无间道2词云">
-            <img src="无人知晓_wordcloud.png" alt="无人知晓词云">
-            <img src="西西里的美丽传说_wordcloud.png" alt="西西里的美丽传说词云">
-            <img src="喜剧之王_wordcloud.png" alt="喜剧之王词云">
-            <img src="喜宴_wordcloud.png" alt="喜宴词云">
-            <img src="消失的爱人_wordcloud.png" alt="消失的爱人词云">
-            <img src="小丑_wordcloud.png" alt="小丑词云">
-            <img src="小森林 冬春篇_wordcloud.png" alt="小森林 冬春篇词云">
-            <img src="小森林 夏秋篇_wordcloud.png" alt="小森林 夏秋篇词云">
-            <img src="小偷家族_wordcloud.png" alt="小偷家族词云">
-            <img src="小鞋子_wordcloud.png" alt="小鞋子词云">
-            <img src="肖申克的救赎_wordcloud.png" alt="肖申克的救赎词云">
-            <img src="心灵捕手_wordcloud.png" alt="心灵捕手词云">
-            <img src="心灵奇旅_wordcloud.png" alt="心灵奇旅词云">
-            <img src="心迷宫_wordcloud.png" alt="心迷宫词云">
-            <img src="辛德勒的名单_wordcloud.png" alt="辛德勒的名单词云">
-            <img src="新龙门客栈_wordcloud.png" alt="新龙门客栈词云">
-            <img src="新世界_wordcloud.png" alt="新世界词云">
-            <img src="星际穿越_wordcloud.png" alt="星际穿越词云">
-            <img src="幸福终点站_wordcloud.png" alt="幸福终点站词云">
-            <img src="血战钢锯岭_wordcloud.png" alt="血战钢锯岭词云">
-            <img src="血钻_wordcloud.png" alt="血钻词云">
-            <img src="寻梦环游记_wordcloud.png" alt="寻梦环游记词云">
-            <img src="驯龙高手_wordcloud.png" alt="驯龙高手词云">
-            <img src="崖上的波妞_wordcloud.png" alt="崖上的波妞词云">
-            <img src="阳光灿烂的日子_wordcloud.png" alt="阳光灿烂的日子词云">
-            <img src="阳光姐妹淘_wordcloud.png" alt="阳光姐妹淘词云">
-            <img src="一个叫欧维的男人决定去死_wordcloud.png" alt="一个叫欧维的男人决定去死词云">
-            <img src="遗愿清单_wordcloud.png" alt="遗愿清单词云">
-            <img src="音乐之声_wordcloud.png" alt="音乐之声词云">
-            <img src="饮食男女_wordcloud.png" alt="饮食男女词云">
-            <img src="隐藏人物_wordcloud.png" alt="隐藏人物词云">
-            <img src="英雄本色_wordcloud.png" alt="英雄本色词云">
-            <img src="萤火虫之墓_wordcloud.png" alt="萤火虫之墓词云">
-            <img src="萤火之森_wordcloud.png" alt="萤火之森词云">
-            <img src="勇敢的心_wordcloud.png" alt="勇敢的心词云">
-            <img src="幽灵公主_wordcloud.png" alt="幽灵公主词云">
-            <img src="雨人_wordcloud.png" alt="雨人词云">
-            <img src="雨中曲_wordcloud.png" alt="雨中曲词云">
-            <img src="源代码_wordcloud.png" alt="源代码词云">
-            <img src="战争之王_wordcloud.png" alt="战争之王词云">
-            <img src="这个杀手不太冷_wordcloud.png" alt="这个杀手不太冷词云">
-            <img src="真爱至上_wordcloud.png" alt="真爱至上词云">
-            <img src="拯救大兵瑞恩_wordcloud.png" alt="拯救大兵瑞恩词云">
-            <img src="蜘蛛侠：平行宇宙_wordcloud.png" alt="蜘蛛侠：平行宇宙词云">
-            <img src="指环王1：护戒使者_wordcloud.png" alt="指环王1：护戒使者词云">
-            <img src="指环王2：双塔奇兵_wordcloud.png" alt="指环王2：双塔奇兵词云">
-            <img src="指环王3：王者无敌_wordcloud.png" alt="指环王3：王者无敌词云">
-            <img src="致命ID_wordcloud.png" alt="致命ID词云">
-            <img src="致命魔术_wordcloud.png" alt="致命魔术词云">
-            <img src="忠犬八公的故事_wordcloud.png" alt="忠犬八公的故事词云">
-            <img src="忠犬八公物语_wordcloud.png" alt="忠犬八公物语词云">
-            <img src="终结者2：审判日_wordcloud.png" alt="终结者2：审判日词云">
-            <img src="重庆森林_wordcloud.png" alt="重庆森林词云">
-            <img src="纵横四海_wordcloud.png" alt="纵横四海词云">
-        </div>
-    </section>
-
-    <!-- 分析报告 -->
-    <section id="report" class="douban-card">
-        <h2 class="section-title">评论分析报告</h2>
-        <p>本部分基于豆瓣Top250电影的评论数据，进行了深入的文本分析和情感挖掘。</p>
-            <p>主要发现包括：</p>
-            <ul style="display: inline-block; text-align: left;">
-                <li>观众对剧情类电影的评价最为积极，情感得分平均达到8.9分</li>
-                <li>动作类电影的评论数量最多，但情感得分相对较低，平均为7.8分</li>
-                <li>高频词分析显示，"经典"、"感动"、"剧情"、"演技"是出现频率最高的正面词汇</li>
-                <li>通过主题模型发现，观众关注的核心主题包括：故事结构、人物塑造、视觉效果和情感共鸣</li>
-                <li>年代趋势分析表明，近年来观众对电影的剧情创新性要求越来越高</li>
-            </ul>
-            <p>详细分析内容将在后续更新中呈现...</p>
-    </section>
-
-    <!-- 页脚 -->
-    <div style="margin-top: 40px; padding: 20px; text-align: center; color: #666;">
-        <p>数据来源：豆瓣电影 &copy; 2025</p>
-    </div>
-
-    <script>
-        // 背景音乐淡入效果
-        const audio = document.getElementById('bgMusic');
-        audio.volume = 0; // 初始音量为0
-        
-        function fadeInMusic() {
-            if (audio.volume < 0.2) {
-                audio.volume += 0.01;
-                setTimeout(fadeInMusic, 50); // 每50毫秒增加音量
-            }
-        }
-
-        // 相册切换函数（使用max-height和opacity实现平滑过渡）
-        function toggleGallery() {
-            const gallery = document.getElementById('image-gallery');
-            const mainButton = document.getElementById('mainGalleryButton');
-            const fixedButton = document.getElementById('fixedGalleryButton');
-            
-            if (gallery.style.maxHeight === '0px' || !gallery.style.maxHeight) {
-                gallery.style.maxHeight = gallery.scrollHeight + 'px';
-                gallery.style.opacity = '1';
-                mainButton.innerHTML = '收起相册 <i class="fa fa-chevron-up"></i>';
-                fixedButton.innerHTML = '收起相册 <i class="fa fa-chevron-up"></i>';
-            } else {
-                gallery.style.maxHeight = '0px';
-                gallery.style.opacity = '0';
-                mainButton.innerHTML = '展开相册 <i class="fa fa-chevron-down"></i>';
-                fixedButton.innerHTML = '展开相册 <i class="fa fa-chevron-down"></i>';
-            }
-        }
-
-        // 滚动事件监听 - 控制固定按钮显示
-        window.addEventListener('scroll', () => {
-            const fixedButton = document.getElementById('fixedGalleryButton');
-            const gallerySection = document.getElementById('image-gallery-section');
-            
-            if (window.scrollY > gallerySection.offsetTop - 100) {
-                fixedButton.style.display = 'block';
-            } else {
-                fixedButton.style.display = 'none';
-            }
-        });
-
-        // 表格展开/收起函数
-        function toggleTable(containerId, button) {
-            const container = document.getElementById(containerId);
-            container.classList.toggle('expanded');
-            
-            if (container.classList.contains('expanded')) {
-                button.innerHTML = '收起表格 <i class="fa fa-chevron-up"></i>';
-            } else {
-                button.innerHTML = '展开表格 <i class="fa fa-chevron-down"></i>';
-            }
-        }
-
-        // CSV加载函数
-        function loadCsv(filePath, targetTableId) {
-            Papa.parse(filePath, {
-                download: true,
-                header: true,
-                complete: (results) => {
-                    const tbody = document.getElementById(targetTableId).querySelector('tbody');
-                    tbody.innerHTML = '';
-                    results.data.forEach(row => {
-                        const tr = tbody.insertRow();
-                        tr.insertCell().textContent = row['类型'];
-                        tr.insertCell().textContent = row['出现次数'];
-                    });
-                    
-                    // 加载完成后显示前几行，隐藏其余行
-                    setTimeout(() => {
-                        const container = document.getElementById('genreTableContainer');
-                        container.classList.remove('expanded');
-                    }, 500);
-                }
-            });
-        }
-
-        // 页面加载
-        document.addEventListener('DOMContentLoaded', () => {
-            fadeInMusic(); // 启动背景音乐淡入
-            loadCsv('3_genre_counts.csv', 'genre-counts-table');
-        });
-    </script>
-</body>
 </html>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -892,9 +270,256 @@
         <h2 class="section-title">电影词云相册</h2>
         <button class="toggle-button" onclick="toggleGallery()">打开相册</button>
         <div class="image-gallery" id="image-gallery">
-            <!-- 相册图片内容保持不变 -->
             <img src="7号房的礼物_wordcloud.png" alt="7号房的礼物词云">
-            <!-- 其他图片... -->
+            <img src="2001太空漫游_wordcloud.png" alt="2001太空漫游词云">
+            <img src="阿凡达_wordcloud.png" alt="阿凡达词云">
+            <img src="阿甘正传_wordcloud.png" alt="阿甘正传词云">
+            <img src="爱乐之城_wordcloud.png" alt="爱乐之城词云">
+            <img src="爱在黎明破晓前_wordcloud.png" alt="爱在黎明破晓前词云">
+            <img src="爱在日落黄昏时_wordcloud.png" alt="爱在日落黄昏时词云">
+            <img src="爱在午夜降临前_wordcloud.png" alt="爱在午夜降临前词云">
+            <img src="傲慢与偏见_wordcloud.png" alt="傲慢与偏见词云">
+            <img src="霸王别姬_wordcloud.png" alt="霸王别姬词云">
+            <img src="白日梦想家_wordcloud.png" alt="白日梦想家词云">
+            <img src="爆裂鼓手_wordcloud.png" alt="爆裂鼓手词云">
+            <img src="背靠背,脸对脸_wordcloud.png" alt="背靠背,脸对脸词云">
+            <img src="被解救的姜戈_wordcloud.png" alt="被解救的姜戈词云">
+            <img src="被嫌弃的松子的一生_wordcloud.png" alt="被嫌弃的松子的一生词云">
+            <img src="本杰明·巴顿奇事_wordcloud.png" alt="本杰明·巴顿奇事词云">
+            <img src="蝙蝠侠:黑暗骑士_wordcloud.png" alt="蝙蝠侠:黑暗骑士词云">
+            <img src="蝙蝠侠:黑暗骑士崛起_wordcloud.png" alt="蝙蝠侠:黑暗骑士崛起词云">
+            <img src="辩护人_wordcloud.png" alt="辩护人词云">
+            <img src="冰川时代_wordcloud.png" alt="冰川时代词云">
+            <img src="冰雪奇缘_wordcloud.png" alt="冰雪奇缘词云">
+            <img src="波西米亚狂想曲_wordcloud.png" alt="波西米亚狂想曲词云">
+            <img src="搏击俱乐部_wordcloud.png" alt="搏击俱乐部词云">
+            <img src="布达佩斯大饭店_wordcloud.png" alt="布达佩斯大饭店词云">
+            <img src="步履不停_wordcloud.png" alt="步履不停词云">
+            <img src="侧耳倾听_wordcloud.png" alt="侧耳倾听词云">
+            <img src="茶馆_wordcloud.png" alt="茶馆词云">
+            <img src="超能陆战队_wordcloud.png" alt="超能陆战队词云">
+            <img src="超脱_wordcloud.png" alt="超脱词云">
+            <img src="沉默的羔羊_wordcloud.png" alt="沉默的羔羊词云">
+            <img src="城市之光_wordcloud.png" alt="城市之光词云">
+            <img src="初恋这件小事_wordcloud.png" alt="初恋这件小事词云">
+            <img src="楚门的世界_wordcloud.png" alt="楚门的世界词云">
+            <img src="触不可及_wordcloud.png" alt="触不可及词云">
+            <img src="穿条纹睡衣的男孩_wordcloud.png" alt="穿条纹睡衣的男孩词云">
+            <img src="春光乍泄_wordcloud.png" alt="春光乍泄词云">
+            <img src="达拉斯买家俱乐部_wordcloud.png" alt="达拉斯买家俱乐部词云">
+            <img src="大佛普拉斯_wordcloud.png" alt="大佛普拉斯词云">
+            <img src="大红灯笼高高挂_wordcloud.png" alt="大红灯笼高高挂词云">
+            <img src="大话西游之大圣娶亲_wordcloud.png" alt="大话西游之大圣娶亲词云">
+            <img src="大话西游之月光宝盒_wordcloud.png" alt="大话西游之月光宝盒词云">
+            <img src="大闹天宫_wordcloud.png" alt="大闹天宫词云">
+            <img src="大鱼_wordcloud.png" alt="大鱼词云">
+            <img src="当幸福来敲门_wordcloud.png" alt="当幸福来敲门词云">
+            <img src="盗梦空间_wordcloud.png" alt="盗梦空间词云">
+            <img src="低俗小说_wordcloud.png" alt="低俗小说词云">
+            <img src="第六感_wordcloud.png" alt="第六感词云">
+            <img src="电锯惊魂_wordcloud.png" alt="电锯惊魂词云">
+            <img src="谍影重重_wordcloud.png" alt="谍影重重词云">
+            <img src="谍影重重2_wordcloud.png" alt="谍影重重2词云">
+            <img src="谍影重重3_wordcloud.png" alt="谍影重重3词云">
+            <img src="东京教父_wordcloud.png" alt="东京教父词云">
+            <img src="东邪西毒_wordcloud.png" alt="东邪西毒词云">
+            <img src="断背山_wordcloud.png" alt="断背山词云">
+            <img src="房间_wordcloud.png" alt="房间词云">
+            <img src="放牛班的春天_wordcloud.png" alt="放牛班的春天词云">
+            <img src="飞屋环游记_wordcloud.png" alt="飞屋环游记词云">
+            <img src="飞越疯人院_wordcloud.png" alt="飞越疯人院词云">
+            <img src="风之谷_wordcloud.png" alt="风之谷词云">
+            <img src="疯狂的麦克斯4：狂暴之路_wordcloud.png" alt="疯狂的麦克斯4：狂暴之路词云">
+            <img src="疯狂的石头_wordcloud.png" alt="疯狂的石头词云">
+            <img src="疯狂动物城_wordcloud.png" alt="疯狂动物城词云">
+            <img src="疯狂原始人_wordcloud.png" alt="疯狂原始人词云">
+            <img src="芙蓉镇_wordcloud.png" alt="芙蓉镇词云">
+            <img src="釜山行_wordcloud.png" alt="釜山行词云">
+            <img src="钢琴家_wordcloud.png" alt="钢琴家词云">
+            <img src="高山下的花环_wordcloud.png" alt="高山下的花环词云">
+            <img src="告白_wordcloud.png" alt="告白词云">
+            <img src="功夫_wordcloud.png" alt="功夫词云">
+            <img src="牯岭街少年杀人事件_wordcloud.png" alt="牯岭街少年杀人事件词云">
+            <img src="怪兽电力公司_wordcloud.png" alt="怪兽电力公司词云">
+            <img src="鬼子来了_wordcloud.png" alt="鬼子来了词云">
+            <img src="哈尔的移动城堡_wordcloud.png" alt="哈尔的移动城堡词云">
+            <img src="哈利·波特与阿兹卡班的囚徒_wordcloud.png" alt="哈利·波特与阿兹卡班的囚徒词云">
+            <img src="哈利·波特与凤凰社_wordcloud.png" alt="哈利·波特与凤凰社词云">
+            <img src="哈利·波特与火焰杯_wordcloud.png" alt="哈利·波特与火焰杯词云">
+            <img src="哈利·波特与密室_wordcloud.png" alt="哈利·波特与密室词云">
+            <img src="哈利·波特与魔法石_wordcloud.png" alt="哈利·波特与魔法石词云">
+            <img src="哈利·波特与死亡圣器(上)_wordcloud.png" alt="哈利·波特与死亡圣器(上)词云">
+            <img src="哈利·波特与死亡圣器(下)_wordcloud.png" alt="哈利·波特与死亡圣器(下)词云">
+            <img src="还有明天_wordcloud.png" alt="还有明天词云">
+            <img src="海边的曼彻斯特_wordcloud.png" alt="海边的曼彻斯特词云">
+            <img src="海蒂和爷爷_wordcloud.png" alt="海蒂和爷爷词云">
+            <img src="海街日记_wordcloud.png" alt="海街日记词云">
+            <img src="海上钢琴师_wordcloud.png" alt="海上钢琴师词云">
+            <img src="海豚湾_wordcloud.png" alt="海豚湾词云">
+            <img src="何以为家_wordcloud.png" alt="何以为家词云">
+            <img src="黑客帝国_wordcloud.png" alt="黑客帝国词云">
+            <img src="黑客帝国2：重装上阵_wordcloud.png" alt="黑客帝国2：重装上阵词云">
+            <img src="黑客帝国3：矩阵革命_wordcloud.png" alt="黑客帝国3：矩阵革命词云">
+            <img src="黑天鹅_wordcloud.png" alt="黑天鹅词云">
+            <img src="红辣椒_wordcloud.png" alt="红辣椒词云">
+            <img src="蝴蝶效应_wordcloud.png" alt="蝴蝶效应词云">
+            <img src="虎口脱险_wordcloud.png" alt="虎口脱险词云">
+            <img src="花束般的恋爱_wordcloud.png" alt="花束般的恋爱词云">
+            <img src="花样年华_wordcloud.png" alt="花样年华词云">
+            <img src="荒蛮故事_wordcloud.png" alt="荒蛮故事词云">
+            <img src="彗星来的那一夜_wordcloud.png" alt="彗星来的那一夜词云">
+            <img src="魂断蓝桥_wordcloud.png" alt="魂断蓝桥词云">
+            <img src="活着_wordcloud.png" alt="活着词云">
+            <img src="火星救援_wordcloud.png" alt="火星救援词云">
+            <img src="机器人之梦_wordcloud.png" alt="机器人之梦词云">
+            <img src="机器人总动员_wordcloud.png" alt="机器人总动员词云">
+            <img src="记忆碎片_wordcloud.png" alt="记忆碎片词云">
+            <img src="寄生虫_wordcloud.png" alt="寄生虫词云">
+            <img src="加勒比海盗_wordcloud.png" alt="加勒比海盗词云">
+            <img src="剪刀手爱德华_wordcloud.png" alt="剪刀手爱德华词云">
+            <img src="教父_wordcloud.png" alt="教父词云">
+            <img src="教父2_wordcloud.png" alt="教父2词云">
+            <img src="教父3_wordcloud.png" alt="教父3词云">
+            <img src="借东西的小人阿莉埃蒂_wordcloud.png" alt="借东西的小人阿莉埃蒂词云">
+            <img src="禁闭岛_wordcloud.png" alt="禁闭岛词云">
+            <img src="惊魂记_wordcloud.png" alt="惊魂记词云">
+            <img src="九品芝麻官_wordcloud.png" alt="九品芝麻官词云">
+            <img src="菊次郎的夏天_wordcloud.png" alt="菊次郎的夏天词云">
+            <img src="看不见的客人_wordcloud.png" alt="看不见的客人词云">
+            <img src="可可西里_wordcloud.png" alt="可可西里词云">
+            <img src="恐怖游轮_wordcloud.png" alt="恐怖游轮词云">
+            <img src="恐怖直播_wordcloud.png" alt="恐怖直播词云">
+            <img src="控方证人_wordcloud.png" alt="控方证人词云">
+            <img src="恋恋笔记本_wordcloud.png" alt="恋恋笔记本词云">
+            <img src="两杆大烟枪_wordcloud.png" alt="两杆大烟枪词云">
+            <img src="龙猫_wordcloud.png" alt="龙猫词云">
+            <img src="卢旺达饭店_wordcloud.png" alt="卢旺达饭店词云">
+            <img src="乱世佳人_wordcloud.png" alt="乱世佳人词云">
+            <img src="罗马假日_wordcloud.png" alt="罗马假日词云">
+            <img src="罗生门_wordcloud.png" alt="罗生门词云">
+            <img src="绿里奇迹_wordcloud.png" alt="绿里奇迹词云">
+            <img src="绿皮书_wordcloud.png" alt="绿皮书词云">
+            <img src="玛丽和马克思_wordcloud.png" alt="玛丽和马克思词云">
+            <img src="猫鼠游戏_wordcloud.png" alt="猫鼠游戏词云">
+            <img src="美国往事_wordcloud.png" alt="美国往事词云">
+            <img src="美国往事_wordcloud.png" alt="美国往事词云">
+            <img src="美丽人生_wordcloud.png" alt="美丽人生词云">
+            <img src="美丽心灵_wordcloud.png" alt="美丽心灵词云">
+            <img src="模仿游戏_wordcloud.png" alt="模仿游戏词云">
+            <img src="摩登时代_wordcloud.png" alt="摩登时代词云">
+            <img src="魔女宅急便_wordcloud.png" alt="魔女宅急便词云">
+            <img src="末代皇帝_wordcloud.png" alt="末代皇帝词云">
+            <img src="末路狂花_wordcloud.png" alt="末路狂花词云">
+            <img src="哪吒闹海_wordcloud.png" alt="哪吒闹海词云">
+            <img src="你的名字。_wordcloud.png" alt="你的名字。词云">
+            <img src="你看起来好像很好吃_wordcloud.png" alt="你看起来好像很好吃词云">
+            <img src="怦然心动_wordcloud.png" alt="怦然心动词云">
+            <img src="贫民窟的百万富翁_wordcloud.png" alt="贫民窟的百万富翁词云">
+            <img src="七武士_wordcloud.png" alt="七武士词云">
+            <img src="七宗罪_wordcloud.png" alt="七宗罪词云">
+            <img src="奇迹男孩_wordcloud.png" alt="奇迹男孩词云">
+            <img src="千钧一发_wordcloud.png" alt="千钧一发词云">
+            <img src="千年女优_wordcloud.png" alt="千年女优词云">
+            <img src="千与千寻_wordcloud.png" alt="千与千寻词云">
+            <img src="倩女幽魂_wordcloud.png" alt="倩女幽魂词云">
+            <img src="窃听风暴_wordcloud.png" alt="窃听风暴词云">
+            <img src="青蛇_wordcloud.png" alt="青蛇词云">
+            <img src="情书_wordcloud.png" alt="情书词云">
+            <img src="请以你的名字呼唤我_wordcloud.png" alt="请以你的名字呼唤我词云">
+            <img src="让子弹飞_wordcloud.png" alt="让子弹飞词云">
+            <img src="人工智能_wordcloud.png" alt="人工智能词云">
+            <img src="熔炉_wordcloud.png" alt="熔炉词云">
+            <img src="入殓师_wordcloud.png" alt="入殓师词云">
+            <img src="弱点_wordcloud.png" alt="弱点词云">
+            <img src="三块广告牌_wordcloud.png" alt="三块广告牌词云">
+            <img src="三傻大闹宝莱坞_wordcloud.png" alt="三傻大闹宝莱坞词云">
+            <img src="色，戒_wordcloud.png" alt="色，戒词云">
+            <img src="杀人回忆_wordcloud.png" alt="杀人回忆词云">
+            <img src="上帝之城_wordcloud.png" alt="上帝之城词云">
+            <img src="少年派的奇幻漂流_wordcloud.png" alt="少年派的奇幻漂流词云">
+            <img src="射雕英雄传之东成西就_wordcloud.png" alt="射雕英雄传之东成西就词云">
+            <img src="神偷奶爸_wordcloud.png" alt="神偷奶爸词云">
+            <img src="狮子王_wordcloud.png" alt="狮子王词云">
+            <img src="十二怒汉_wordcloud.png" alt="十二怒汉词云">
+            <img src="时空恋旅人_wordcloud.png" alt="时空恋旅人词云">
+            <img src="狩猎_wordcloud.png" alt="狩猎词云">
+            <img src="摔跤吧！爸爸_wordcloud.png" alt="摔跤吧！爸爸词云">
+            <img src="死亡诗社_wordcloud.png" alt="死亡诗社词云">
+            <img src="素媛_wordcloud.png" alt="素媛词云">
+            <img src="岁月神偷_wordcloud.png" alt="岁月神偷词云">
+            <img src="泰坦尼克号_wordcloud.png" alt="泰坦尼克号词云">
+            <img src="唐伯虎点秋香_wordcloud.png" alt="唐伯虎点秋香词云">
+            <img src="天空之城_wordcloud.png" alt="天空之城词云">
+            <img src="天使爱美丽_wordcloud.png" alt="天使爱美丽词云">
+            <img src="天书奇谭_wordcloud.png" alt="天书奇谭词云">
+            <img src="天堂电影院_wordcloud.png" alt="天堂电影院词云">
+            <img src="甜蜜蜜_wordcloud.png" alt="甜蜜蜜词云">
+            <img src="头号玩家_wordcloud.png" alt="头号玩家词云">
+            <img src="头脑特工队_wordcloud.png" alt="头脑特工队词云">
+            <img src="完美的世界_wordcloud.png" alt="完美的世界词云">
+            <img src="玩具总动员3_wordcloud.png" alt="玩具总动员3词云">
+            <img src="未麻的部屋_wordcloud.png" alt="未麻的部屋词云">
+            <img src="闻香识女人_wordcloud.png" alt="闻香识女人词云">
+            <img src="我不是药神_wordcloud.png" alt="我不是药神词云">
+            <img src="我是山姆_wordcloud.png" alt="我是山姆词云">
+            <img src="无耻混蛋_wordcloud.png" alt="无耻混蛋词云">
+            <img src="无敌破坏王_wordcloud.png" alt="无敌破坏王词云">
+            <img src="无间道_wordcloud.png" alt="无间道词云">
+            <img src="无间道2_wordcloud.png" alt="无间道2词云">
+            <img src="无人知晓_wordcloud.png" alt="无人知晓词云">
+            <img src="西西里的美丽传说_wordcloud.png" alt="西西里的美丽传说词云">
+            <img src="喜剧之王_wordcloud.png" alt="喜剧之王词云">
+            <img src="喜宴_wordcloud.png" alt="喜宴词云">
+            <img src="消失的爱人_wordcloud.png" alt="消失的爱人词云">
+            <img src="小丑_wordcloud.png" alt="小丑词云">
+            <img src="小森林 冬春篇_wordcloud.png" alt="小森林 冬春篇词云">
+            <img src="小森林 夏秋篇_wordcloud.png" alt="小森林 夏秋篇词云">
+            <img src="小偷家族_wordcloud.png" alt="小偷家族词云">
+            <img src="小鞋子_wordcloud.png" alt="小鞋子词云">
+            <img src="肖申克的救赎_wordcloud.png" alt="肖申克的救赎词云">
+            <img src="心灵捕手_wordcloud.png" alt="心灵捕手词云">
+            <img src="心灵奇旅_wordcloud.png" alt="心灵奇旅词云">
+            <img src="心迷宫_wordcloud.png" alt="心迷宫词云">
+            <img src="辛德勒的名单_wordcloud.png" alt="辛德勒的名单词云">
+            <img src="新龙门客栈_wordcloud.png" alt="新龙门客栈词云">
+            <img src="新世界_wordcloud.png" alt="新世界词云">
+            <img src="星际穿越_wordcloud.png" alt="星际穿越词云">
+            <img src="幸福终点站_wordcloud.png" alt="幸福终点站词云">
+            <img src="血战钢锯岭_wordcloud.png" alt="血战钢锯岭词云">
+            <img src="血钻_wordcloud.png" alt="血钻词云">
+            <img src="寻梦环游记_wordcloud.png" alt="寻梦环游记词云">
+            <img src="驯龙高手_wordcloud.png" alt="驯龙高手词云">
+            <img src="崖上的波妞_wordcloud.png" alt="崖上的波妞词云">
+            <img src="阳光灿烂的日子_wordcloud.png" alt="阳光灿烂的日子词云">
+            <img src="阳光姐妹淘_wordcloud.png" alt="阳光姐妹淘词云">
+            <img src="一个叫欧维的男人决定去死_wordcloud.png" alt="一个叫欧维的男人决定去死词云">
+            <img src="遗愿清单_wordcloud.png" alt="遗愿清单词云">
+            <img src="音乐之声_wordcloud.png" alt="音乐之声词云">
+            <img src="饮食男女_wordcloud.png" alt="饮食男女词云">
+            <img src="隐藏人物_wordcloud.png" alt="隐藏人物词云">
+            <img src="英雄本色_wordcloud.png" alt="英雄本色词云">
+            <img src="萤火虫之墓_wordcloud.png" alt="萤火虫之墓词云">
+            <img src="萤火之森_wordcloud.png" alt="萤火之森词云">
+            <img src="勇敢的心_wordcloud.png" alt="勇敢的心词云">
+            <img src="幽灵公主_wordcloud.png" alt="幽灵公主词云">
+            <img src="雨人_wordcloud.png" alt="雨人词云">
+            <img src="雨中曲_wordcloud.png" alt="雨中曲词云">
+            <img src="源代码_wordcloud.png" alt="源代码词云">
+            <img src="战争之王_wordcloud.png" alt="战争之王词云">
+            <img src="这个杀手不太冷_wordcloud.png" alt="这个杀手不太冷词云">
+            <img src="真爱至上_wordcloud.png" alt="真爱至上词云">
+            <img src="拯救大兵瑞恩_wordcloud.png" alt="拯救大兵瑞恩词云">
+            <img src="蜘蛛侠：平行宇宙_wordcloud.png" alt="蜘蛛侠：平行宇宙词云">
+            <img src="指环王1：护戒使者_wordcloud.png" alt="指环王1：护戒使者词云">
+            <img src="指环王2：双塔奇兵_wordcloud.png" alt="指环王2：双塔奇兵词云">
+            <img src="指环王3：王者无敌_wordcloud.png" alt="指环王3：王者无敌词云">
+            <img src="致命ID_wordcloud.png" alt="致命ID词云">
+            <img src="致命魔术_wordcloud.png" alt="致命魔术词云">
+            <img src="忠犬八公的故事_wordcloud.png" alt="忠犬八公的故事词云">
+            <img src="忠犬八公物语_wordcloud.png" alt="忠犬八公物语词云">
+            <img src="终结者2：审判日_wordcloud.png" alt="终结者2：审判日词云">
+            <img src="重庆森林_wordcloud.png" alt="重庆森林词云">
+            <img src="纵横四海_wordcloud.png" alt="纵横四海词云">
         </div>
     </section>
 
