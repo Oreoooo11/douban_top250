@@ -26,9 +26,11 @@
             margin-bottom: 30px;
             padding: 25px;
         }
+
         #overview .text-content {
             text-align: center;
             white-space: pre-wrap;
+        }
 
         .section-title {
             font-size: 1.8em;
@@ -38,7 +40,6 @@
             margin-bottom: 20px;
         }
 
-      
         /* 导航栏均匀分布 */
         nav {
             background: rgba(255, 255, 255, 0.95);
@@ -92,7 +93,7 @@
             overflow: hidden;
             transition: all 0.5s ease;
         }
-    
+
         .image-gallery img {
             width: 100%;
             height: auto;
@@ -100,7 +101,7 @@
             transition: transform 0.3s;
             border-radius: 6px;
         }
-    
+
         /* 移动端适配 */
         @media (max-width: 768px) {
             .image-row {
@@ -110,15 +111,34 @@
                 max-width: 100%;
             }
         }
+
+        /* 新增：顶部标语文字颜色修改 */
+        .header-slogan h1,
+        .header-slogan p {
+            color: white;
+        }
+
+        /* 新增：经典台词样式 */
+        .quote-section {
+            text-align: center;
+        }
+
+        .quote-section p {
+            color: white;
+        }
+
+        .quote-section p:last-child {
+            color: #999; /* 保持引用作者颜色不变 */
+        }
     </style>
 </head>
 <body>
-    <!-- 标语模块 -->
+    <!-- 标语模块（修改文字颜色为白色） -->
     <div class="header-slogan">
-        <h1 style="font-size: 1.8em; color: #666; margin-bottom: 10px;">光影里的时间胶囊</h1>
-        <p style="font-size: 1.2em; color: #999;">在光影的长河中，250部佳作如星辰般闪耀，跨越89载时光(1936-2025)，承载着不同文化的叙事密码。</p>
+        <h1 style="font-size: 1.8em; margin-bottom: 10px;">光影里的时间胶囊</h1>
+        <p style="font-size: 1.2em;">在光影的长河中，250部佳作如星辰般闪耀，跨越89载时光(1936-2025)，承载着不同文化的叙事密码。</p>
     </div>
-    
+
     <!-- 导航栏（均匀分布） -->
     <nav>
         <a href="#overview">概览</a>
@@ -127,10 +147,10 @@
         <a href="#report">评论分析报告</a>
     </nav>
 
-    <!-- 概览部分 -->
-    <section id="overview" class="douban-card">
-        <h2 class="section-title">概览</h2>
-        <div class="overview-content">
+    <!-- 概览部分（添加douban-card类以应用卡片样式） -->
+    <section id="overview" class="douban-card section">
+        <h2 style="text-align: center;">豆瓣Top250电影概览</h2> <!-- 标题居中 -->
+        <div class="text-content"> <!-- 内容容器已通过CSS居中 -->
             <p>豆瓣电影Top250分析报告</p>
             <p>基本统计:<br>
                - 电影总数: 147<br>
@@ -419,7 +439,6 @@
             <img src="终结者2：审判日_wordcloud.png" alt="终结者2：审判日词云">
             <img src="重庆森林_wordcloud.png" alt="重庆森林词云">
             <img src="纵横四海_wordcloud.png" alt="纵横四海词云">
-            <!-- 其他图片 -->
         </div>
     </section>
 
@@ -439,23 +458,23 @@
         </div>
     </section>
 
-    <!-- 新增电影台词模块 -->
+    <!-- 新增电影台词模块（修改为居中+白色字体） -->
     <div class="quote-section">
         <h3 style="font-size: 1.5em; color: #333; margin-bottom: 10px;">经典台词</h3>
-        <p style="font-size: 1.2em; color: #666;">「人生就像一盒巧克力，你永远不知道下一颗是什么味道」</p>
+        <p style="font-size: 1.2em; color: white;">「人生就像一盒巧克力，你永远不知道下一颗是什么味道」</p>
         <p style="font-size: 0.9em; color: #999;">——《阿甘正传》</p>
     </div>
 
-    <!-- 背景音乐 -->
-    <audio autoplay loop preload="auto" onloadedmetadata="this.volume = 0.2; this.play();">
-        <source src="background_music.mp3" type="audio/mpeg">
+    <!-- 背景音乐（添加音频标签，使用相对路径） -->
+    <audio autoplay loop preload="auto" volume="0.2">
+        <source src="bg_music.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放。
     </audio>
 
     <!-- 页脚 -->
     <div style="margin-top: 40px; padding: 20px; text-align: center; color: #666;">
         <p>数据来源：豆瓣电影 &copy; 2025</p>
     </div>
-
 
     <script>
         // 相册切换函数（使用max-height和opacity实现平滑过渡）
@@ -474,36 +493,7 @@
             }
         }
 
-        // 滚动事件监听 - 控制固定按钮显示
-        window.addEventListener('scroll', () => {
-            const fixedButton = document.getElementById('fixedGalleryButton');
-            
-            if (window.scrollY > 300) {
-                fixedButton.style.display = 'block';
-            } else {
-                fixedButton.style.display = 'none';
-            }
-        });
-
-        // 页面加载
-        document.addEventListener('DOMContentLoaded', () => {
-            // 音乐播放控制
-            const audio = document.getElementById('bgMusic');
-            let musicPlayed = false;
-            
-            // 尝试自动播放音乐
-            audio.play().catch(e => {
-                console.log('自动播放失败:', e);
-                // 用户交互后播放音乐
-                document.addEventListener('click', () => {
-                    if (!musicPlayed) {
-                        audio.muted = false;
-                        audio.play().catch(err => console.log('用户交互后仍无法播放:', err));
-                        musicPlayed = true;
-                    }
-                }, { once: true });
-            });
-        });
+        // 移除冗余的滚动事件监听和DOMContentLoaded事件处理
     </script>
 </body>
-</html>    
+</html>   
