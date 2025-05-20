@@ -82,46 +82,6 @@
             transform: scale(1.02);
         }
 
-        /* 表格优化 - 缩略/展开功能 */
-        .table-container {
-            max-height: 300px; /* 初始最大高度 */
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-            position: relative;
-        }
-
-        .table-container.expanded {
-            max-height: 2000px; /* 展开后的最大高度 */
-        }
-
-        .table-toggle {
-            background-color: #f5f5f5;
-            border: 1px solid #e5e5e5;
-            border-radius: 4px;
-            padding: 8px 15px;
-            margin-top: 10px;
-            cursor: pointer;
-            text-align: center;
-            display: inline-block;
-            transition: all 0.3s;
-        }
-
-        .table-toggle:hover {
-            background-color: #e5e5e5;
-        }
-
-        table {
-            max-width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            border: 1px solid #e5e5e5;
-            padding: 10px;
-            text-align: center;
-        }
-
         /* 其他样式 */
         .gallery-button {
             background: #f5f5f5;
@@ -197,19 +157,6 @@
             <img src="18_decade_trend.png" alt="电影数量与评分随时间变化" class="analysis-image">
             <img src="21_sentiment_vs_rating.png" alt="评论情感得分与电影评分关系" class="analysis-image">
             <img src="22_topic_distribution.png" alt="主题分布" class="analysis-image">
-        </div>
-
-        <!-- 类型频率统计表格 -->
-        <h3>类型频率统计</h3>
-        <div class="table-container" id="genreTableContainer">
-            <div class="loading">加载中...</div>
-            <table id="genre-counts-table">
-                <thead><tr><th>类型</th><th>出现次数</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="table-toggle" onclick="toggleTable('genreTableContainer', this)">
-            展开表格 <i class="fa fa-chevron-down"></i>
         </div>
     </section>
 
@@ -499,45 +446,6 @@
             let gallery = document.getElementById('image-gallery');
             gallery.style.display = gallery.style.display === 'none' ? 'flex' : 'none';
         }
-
-        // 表格展开/收起函数
-        function toggleTable(containerId, button) {
-            const container = document.getElementById(containerId);
-            container.classList.toggle('expanded');
-            
-            if (container.classList.contains('expanded')) {
-                button.innerHTML = '收起表格 <i class="fa fa-chevron-up"></i>';
-            } else {
-                button.innerHTML = '展开表格 <i class="fa fa-chevron-down"></i>';
-            }
-        }
-
-        // CSV加载函数
-        function loadCsv(filePath, targetTableId) {
-            Papa.parse(filePath, {
-                download: true,
-                header: true,
-                complete: (results) => {
-                    const tbody = document.getElementById(targetTableId).querySelector('tbody');
-                    tbody.innerHTML = '';
-                    results.data.forEach(row => {
-                        const tr = tbody.insertRow();
-                        tr.insertCell().textContent = row['类型'];
-                        tr.insertCell().textContent = row['出现次数'];
-                    });
-                    
-                    // 加载完成后显示前几行，隐藏其余行
-                    setTimeout(() => {
-                        const container = document.getElementById('genreTableContainer');
-                        container.classList.remove('expanded');
-                    }, 500);
-                }
-            });
-        }
-
-        // 页面加载
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCsv('3_genre_counts.csv', 'genre-counts-table');
             
     </script>
 </body>
