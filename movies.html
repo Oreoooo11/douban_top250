@@ -114,17 +114,12 @@
     </style>
 </head>
 <body>
-    <!-- 背景音乐 -->
-    <audio id="bgMusic" autoplay loop preload="auto" volume="0.2">
-        <source src="background_music.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- 豆瓣风格头部 -->
-    <div class="douban-card">
-        <h1 style="font-size: 2.2em; color: #167ac6; margin-bottom: 10px;">豆瓣Top250电影数据分析</h1>
-        <p style="color: #666; margin-bottom: 25px;">在光影的长河中，250部佳作如星辰般闪耀，跨越89载时光(1936-2025)，承载着不同文化的叙事密码。</p>
+      <!-- 标语模块 -->
+    <div class="header-slogan">
+        <h1 style="font-size: 1.8em; color: #666; margin-bottom: 10px;">光影里的时间胶囊</h1>
+        <p style="font-size: 1.2em; color: #999;">在光影的长河中，250部佳作如星辰般闪耀，跨越89载时光(1936-2025)，承载着不同文化的叙事密码。</p>
     </div>
-
+    
     <!-- 导航栏（均匀分布） -->
     <nav>
         <a href="#overview">概览</a>
@@ -444,6 +439,18 @@
             <p>详细分析内容将在后续更新中呈现...</p>
         </div>
     </section>
+
+    <!-- 新增电影台词模块 -->
+    <div class="quote-section">
+        <h3 style="font-size: 1.5em; color: #333; margin-bottom: 10px;">经典台词</h3>
+        <p style="font-size: 1.2em; color: #666;">「人生就像一盒巧克力，你永远不知道下一颗是什么味道」</p>
+        <p style="font-size: 0.9em; color: #999;">——《阿甘正传》</p>
+    </div>
+
+    <!-- 背景音乐 -->
+    <audio autoplay loop preload="auto" onloadedmetadata="this.volume = 0.2; this.play();">
+        <source src="background_music.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- 页脚 -->
     <div style="margin-top: 40px; padding: 20px; text-align: center; color: #666;">
