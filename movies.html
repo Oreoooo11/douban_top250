@@ -63,6 +63,16 @@
             .animate-pulse-slow {
                 animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             }
+            .bg-movie-pattern {
+                background-image: background.jpg; /* 替换为您的背景图片 URL */
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }
+            .bg-overlay {
+                background-color: rgba(240, 243, 245, 0.9); /* 半透明覆盖层，调整透明度以控制图片显示强度 */
+            }
+        
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -78,7 +88,7 @@
         }
     </style>
 </head>
-<body class="font-inter bg-douban-secondary text-douban-dark min-h-screen">
+<body class="font-inter bg-douban-secondary bg-movie-pattern bg-overlay text-douban-dark min-h-screen">
     <!-- 导航栏 -->
     <header class="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-douban-border-light">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
