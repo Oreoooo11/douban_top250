@@ -291,28 +291,6 @@
                 </div>
                 
                 <div id="imageGallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 hidden">
-                    <div class="bg-douban-secondary/30 rounded-xl overflow-hidden card-hover">
-                        <img src="7号房的礼物_wordcloud.png" alt="7号房的礼物词云" class="w-full h-52 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold">7号房的礼物</h3>
-                            <p class="text-sm text-douban-muted">观众评论词云</p>
-                        </div>
-                    </div>
-                    <div class="bg-douban-secondary/30 rounded-xl overflow-hidden card-hover">
-                        <img src="重庆森林_wordcloud.png" alt="重庆森林词云" class="w-full h-52 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold">重庆森林</h3>
-                            <p class="text-sm text-douban-muted">观众评论词云</p>
-                        </div>
-                    </div>
-                    <div class="bg-douban-secondary/30 rounded-xl overflow-hidden card-hover">
-                        <img src="纵横四海_wordcloud.png" alt="纵横四海词云" class="w-full h-52 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold">纵横四海</h3>
-                            <p class="text-sm text-douban-muted">观众评论词云</p>
-                        </div>
-                    </div>
-                   
                 </div>
             </div>
         </section>
@@ -519,7 +497,281 @@
         您的浏览器不支持音频播放。
     </audio>
 
+    
     <script>
+      // 定义图片数组（根据你的文件命名规则调整）
+      const movieWordclouds = [
+            "7号房的礼物_wordcloud.png",
+            "2001太空漫游_wordcloud.png",
+            "阿凡达_wordcloud.png",
+            "阿甘正传_wordcloud.png",
+            "爱乐之城_wordcloud.png",
+            "爱在黎明破晓前_wordcloud.png",
+            "爱在日落黄昏时_wordcloud.png",
+            "爱在午夜降临前_wordcloud.png",
+            "傲慢与偏见_wordcloud.png",
+            "霸王别姬_wordcloud.png",
+            "白日梦想家_wordcloud.png",
+            "爆裂鼓手_wordcloud.png",
+            "背靠背,脸对脸_wordcloud.png",
+            "被解救的姜戈_wordcloud.png",
+            "被嫌弃的松子的一生_wordcloud.png",
+            "本杰明·巴顿奇事_wordcloud.png",
+            "蝙蝠侠:黑暗骑士_wordcloud.png",
+            "蝙蝠侠:黑暗骑士崛起_wordcloud.png",
+            "辩护人_wordcloud.png",
+            "冰川时代_wordcloud.png",
+            "冰雪奇缘_wordcloud.png",
+            "波西米亚狂想曲_wordcloud.png",
+            "搏击俱乐部_wordcloud.png",
+            "布达佩斯大饭店_wordcloud.png",
+            "步履不停_wordcloud.png",
+            "侧耳倾听_wordcloud.png",
+            "茶馆_wordcloud.png",
+            "超能陆战队_wordcloud.png",
+            "超脱_wordcloud.png",
+            "沉默的羔羊_wordcloud.png",
+            "城市之光_wordcloud.png",
+            "初恋这件小事_wordcloud.png",
+            "楚门的世界_wordcloud.png",
+            "触不可及_wordcloud.png",
+            "穿条纹睡衣的男孩_wordcloud.png",
+            "春光乍泄_wordcloud.png",
+            "达拉斯买家俱乐部_wordcloud.png",
+            "大佛普拉斯_wordcloud.png",
+            "大红灯笼高高挂_wordcloud.png",
+            "大话西游之大圣娶亲_wordcloud.png",
+            "大话西游之月光宝盒_wordcloud.png",
+            "大闹天宫_wordcloud.png",
+            "大鱼_wordcloud.png",
+            "当幸福来敲门_wordcloud.png",
+            "盗梦空间_wordcloud.png",
+            "低俗小说_wordcloud.png",
+            "第六感_wordcloud.png",
+            "电锯惊魂_wordcloud.png",
+            "谍影重重_wordcloud.png",
+            "谍影重重2_wordcloud.png",
+            "谍影重重3_wordcloud.png",
+            "东京教父_wordcloud.png",
+            "东邪西毒_wordcloud.png",
+            "断背山_wordcloud.png",
+            "房间_wordcloud.png",
+            "放牛班的春天_wordcloud.png",
+            "飞屋环游记_wordcloud.png",
+            "飞越疯人院_wordcloud.png",
+            "风之谷_wordcloud.png",
+            "疯狂的麦克斯4：狂暴之路_wordcloud.png",
+            "疯狂的石头_wordcloud.png",
+            "疯狂动物城_wordcloud.png",
+            "疯狂原始人_wordcloud.png",
+            "芙蓉镇_wordcloud.png",
+            "釜山行_wordcloud.png",
+            "钢琴家_wordcloud.png",
+            "高山下的花环_wordcloud.png",
+            "告白_wordcloud.png",
+            "功夫_wordcloud.png",
+            "牯岭街少年杀人事件_wordcloud.png",
+            "怪兽电力公司_wordcloud.png",
+            "鬼子来了_wordcloud.png",
+            "哈尔的移动城堡_wordcloud.png",
+            "哈利·波特与阿兹卡班的囚徒_wordcloud.png",
+            "哈利·波特与凤凰社_wordcloud.png",
+            "哈利·波特与火焰杯_wordcloud.png",
+            "哈利·波特与密室_wordcloud.png",
+            "哈利·波特与魔法石_wordcloud.png",
+            "哈利·波特与死亡圣器(上)_wordcloud.png",
+            "哈利·波特与死亡圣器(下)_wordcloud.png",
+            "还有明天_wordcloud.png",
+            "海边的曼彻斯特_wordcloud.png",
+            "海蒂和爷爷_wordcloud.png",
+            "海街日记_wordcloud.png",
+            "海上钢琴师_wordcloud.png",
+            "海豚湾_wordcloud.png",
+            "何以为家_wordcloud.png",
+            "黑客帝国_wordcloud.png",
+            "黑客帝国2：重装上阵_wordcloud.png",
+            "黑客帝国3：矩阵革命_wordcloud.png",
+            "黑天鹅_wordcloud.png",
+            "红辣椒_wordcloud.png",
+            "蝴蝶效应_wordcloud.png",
+            "虎口脱险_wordcloud.png",
+            "花束般的恋爱_wordcloud.png",
+            "花样年华_wordcloud.png",
+            "荒蛮故事_wordcloud.png",
+            "彗星来的那一夜_wordcloud.png",
+            "魂断蓝桥_wordcloud.png",
+            "活着_wordcloud.png",
+            "火星救援_wordcloud.png",
+            "机器人之梦_wordcloud.png",
+            "机器人总动员_wordcloud.png",
+            "记忆碎片_wordcloud.png",
+            "寄生虫_wordcloud.png",
+            "加勒比海盗_wordcloud.png",
+            "剪刀手爱德华_wordcloud.png",
+            "教父_wordcloud.png",
+            "教父2_wordcloud.png",
+            "教父3_wordcloud.png",
+            "借东西的小人阿莉埃蒂_wordcloud.png",
+            "禁闭岛_wordcloud.png",
+            "惊魂记_wordcloud.png",
+            "九品芝麻官_wordcloud.png",
+            "菊次郎的夏天_wordcloud.png",
+            "看不见的客人_wordcloud.png",
+            "可可西里_wordcloud.png",
+            "恐怖游轮_wordcloud.png",
+            "恐怖直播_wordcloud.png",
+            "控方证人_wordcloud.png",
+            "恋恋笔记本_wordcloud.png",
+            "两杆大烟枪_wordcloud.png",
+            "龙猫_wordcloud.png",
+            "卢旺达饭店_wordcloud.png",
+            "乱世佳人_wordcloud.png",
+            "罗马假日_wordcloud.png",
+            "罗生门_wordcloud.png",
+            "绿里奇迹_wordcloud.png",
+            "绿皮书_wordcloud.png",
+            "玛丽和马克思_wordcloud.png",
+            "猫鼠游戏_wordcloud.png",
+            "美国往事_wordcloud.png",
+            "美国往事_wordcloud.png",
+            "美丽人生_wordcloud.png",
+            "美丽心灵_wordcloud.png",
+            "模仿游戏_wordcloud.png",
+            "摩登时代_wordcloud.png",
+            "魔女宅急便_wordcloud.png",
+            "末代皇帝_wordcloud.png",
+            "末路狂花_wordcloud.png",
+            "哪吒闹海_wordcloud.png",
+            "你的名字。_wordcloud.png",
+            "你看起来好像很好吃_wordcloud.png",
+            "怦然心动_wordcloud.png",
+            "贫民窟的百万富翁_wordcloud.png",
+            "七武士_wordcloud.png",
+            "七宗罪_wordcloud.png",
+            "奇迹男孩_wordcloud.png",
+            "千钧一发_wordcloud.png",
+            "千年女优_wordcloud.png",
+            "千与千寻_wordcloud.png",
+            "倩女幽魂_wordcloud.png",
+            "窃听风暴_wordcloud.png",
+            "青蛇_wordcloud.png",
+            "情书_wordcloud.png",
+            "请以你的名字呼唤我_wordcloud.png",
+            "让子弹飞_wordcloud.png",
+            "人工智能_wordcloud.png",
+            "熔炉_wordcloud.png",
+            "入殓师_wordcloud.png",
+            "弱点_wordcloud.png",
+            "三块广告牌_wordcloud.png",
+            "三傻大闹宝莱坞_wordcloud.png",
+            "色，戒_wordcloud.png",
+            "杀人回忆_wordcloud.png",
+            "上帝之城_wordcloud.png",
+            "少年派的奇幻漂流_wordcloud.png",
+            "射雕英雄传之东成西就_wordcloud.png",
+            "神偷奶爸_wordcloud.png",
+            "狮子王_wordcloud.png",
+            "十二怒汉_wordcloud.png",
+            "时空恋旅人_wordcloud.png",
+            "狩猎_wordcloud.png",
+            "摔跤吧！爸爸_wordcloud.png",
+            "死亡诗社_wordcloud.png",
+            "素媛_wordcloud.png",
+            "岁月神偷_wordcloud.png",
+            "泰坦尼克号_wordcloud.png",
+            "唐伯虎点秋香_wordcloud.png",
+            "天空之城_wordcloud.png",
+            "天使爱美丽_wordcloud.png",
+            "天书奇谭_wordcloud.png",
+            "天堂电影院_wordcloud.png",
+            "甜蜜蜜_wordcloud.png",
+            "头号玩家_wordcloud.png",
+            "头脑特工队_wordcloud.png",
+            "完美的世界_wordcloud.png",
+            "玩具总动员3_wordcloud.png",
+            "未麻的部屋_wordcloud.png",
+            "闻香识女人_wordcloud.png",
+            "我不是药神_wordcloud.png",
+            "我是山姆_wordcloud.png",
+            "无耻混蛋_wordcloud.png",
+            "无敌破坏王_wordcloud.png",
+            "无间道_wordcloud.png",
+            "无间道2_wordcloud.png",
+            "无人知晓_wordcloud.png",
+            "西西里的美丽传说_wordcloud.png",
+            "喜剧之王_wordcloud.png",
+            "喜宴_wordcloud.png",
+            "消失的爱人_wordcloud.png",
+            "小丑_wordcloud.png",
+            "小森林 冬春篇_wordcloud.png",
+            "小森林 夏秋篇_wordcloud.png",
+            "小偷家族_wordcloud.png",
+            "小鞋子_wordcloud.png",
+            "肖申克的救赎_wordcloud.png",
+            "心灵捕手_wordcloud.png",
+            "心灵奇旅_wordcloud.png",
+            "心迷宫_wordcloud.png",
+            "辛德勒的名单_wordcloud.png",
+            "新龙门客栈_wordcloud.png",
+            "新世界_wordcloud.png",
+            "星际穿越_wordcloud.png",
+            "幸福终点站_wordcloud.png",
+            "血战钢锯岭_wordcloud.png",
+            "血钻_wordcloud.png",
+            "寻梦环游记_wordcloud.png",
+            "驯龙高手_wordcloud.png",
+            "崖上的波妞_wordcloud.png",
+            "阳光灿烂的日子_wordcloud.png",
+            "阳光姐妹淘_wordcloud.png",
+            "一个叫欧维的男人决定去死_wordcloud.png",
+            "遗愿清单_wordcloud.png",
+            "音乐之声_wordcloud.png",
+            "饮食男女_wordcloud.png",
+            "隐藏人物_wordcloud.png",
+            "英雄本色_wordcloud.png",
+            "萤火虫之墓_wordcloud.png",
+            "萤火之森_wordcloud.png",
+            "勇敢的心_wordcloud.png",
+            "幽灵公主_wordcloud.png",
+            "雨人_wordcloud.png",
+            "雨中曲_wordcloud.png",
+            "源代码_wordcloud.png",
+            "战争之王_wordcloud.png",
+            "这个杀手不太冷_wordcloud.png",
+            "真爱至上_wordcloud.png",
+            "拯救大兵瑞恩_wordcloud.png",
+            "蜘蛛侠：平行宇宙_wordcloud.png",
+            "指环王1：护戒使者_wordcloud.png",
+            "指环王2：双塔奇兵_wordcloud.png",
+            "指环王3：王者无敌_wordcloud.png",
+            "致命ID_wordcloud.png",
+            "致命魔术_wordcloud.png",
+            "忠犬八公的故事_wordcloud.png",
+            "忠犬八公物语_wordcloud.png",
+            "终结者2：审判日_wordcloud.png",
+            "重庆森林_wordcloud.png",
+            "纵横四海_wordcloud.png"
+      ];
+    
+      // 获取容器元素
+      const gallery = document.getElementById('wordcloudGallery');
+    
+      // 生成图片元素并插入容器
+      movieWordclouds.forEach((imageName) => {
+        const movieTitle = imageName.replace('_wordcloud.png', ''); // 提取电影名
+        
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105';
+        card.innerHTML = `
+          <ig src="${imageName}" alt="${movieTitle}词云图" loading="lazy" class="w-full h-48 object-cover">
+          <div class="p-3">
+            <h3 class="font-medium text-sm truncate">${movieTitle}</h3>
+          </div>
+        `;
+        
+        gallery.appendChild(card);
+      });
+        
         // 移动端菜单控制
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             const mobileMenu = document.getElementById('mobile-menu');
@@ -598,5 +850,10 @@
                 }
             });
         });
+    </script>
+
+        
+
+
         
        
